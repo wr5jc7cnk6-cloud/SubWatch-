@@ -7,67 +7,8 @@
 
 <style>
 body {
-  margin: 0;
   font-family: system-ui, sans-serif;
   background: #f5f5f5;
-}
-
-/* ===== 起動画面 ===== */
-#splash {
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  color: white;
-  z-index: 1000;
-}
-
-/* ===== 開発中ポップアップ ===== */
-#devModal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-}
-
-.dev-box {
-  background: white;
-  border-radius: 14px;
-  padding: 20px;
-  width: 85%;
-  max-width: 320px;
-  text-align: center;
-}
-
-.dev-box h3 {
-  margin-top: 0;
-}
-
-.dev-box p {
-  font-size: 14px;
-  color: #555;
-}
-
-.dev-box button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 15px;
-  font-size: 16px;
-  border: none;
-  border-radius: 10px;
-  background: #4facfe;
-  color: white;
-}
-
-/* ===== メイン ===== */
-#app {
-  display: none;
   padding: 20px;
 }
 
@@ -86,62 +27,53 @@ input, button {
   margin-top: 10px;
 }
 
-ul {
-  padding-left: 20px;
+button:disabled {
+  background: #ccc;
+}
+
+.notice {
+  color: red;
+  font-weight: bold;
+  margin-top: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- 起動画面 -->
-<div id="splash">
-  <h1>SubWatch</h1>
-  <p>サブスク管理アプリ</p>
-</div>
+<div class="card">
+  <h2>SubWatch</h2>
 
-<!-- 開発中ポップアップ -->
-<div id="devModal">
-  <div class="dev-box">
-    <h3>🚧 開発中です</h3>
-    <p>
-      本アプリは現在開発中です。<br>
-      一部機能はご利用いただけません。<br><br>
-      完成までしばらくお待ちください。
-    </p>
-    <button onclick="closeDev()">次へ</button>
-  </div>
-</div>
+  <input id="name" placeholder="サブスク名">
+  <input id="price" type="number" placeholder="月額料金">
 
-<!-- メイン画面 -->
-<div id="app">
-  <div class="card">
-    <h2>SubWatch（サブウォッチ）</h2>
+  <button id="addBtn" onclick="addItem()">追加</button>
 
-    <input id="name" placeholder="サブスク名">
-    <input id="price" type="number" placeholder="月額料金">
-
-    <button onclick="addItem()">追加</button>
-
-    <ul id="list"></ul>
-  </div>
+  <p id="notice" class="notice"></p>
+  <ul id="list"></ul>
 </div>
 
 <script>
-/* 起動演出 */
-setTimeout(() => {
-  document.getElementById("splash").style.display = "none";
-  document.getElementById("devModal").style.display = "flex";
-}, 2000);
+let addCount = 0;
+let lastAddTime = 0;
 
-/* 開発中ポップアップ閉じる */
-function closeDev() {
-  document.getElementById("devModal").style.display = "none";
-  document.getElementById("app").style.display = "block";
-}
+const banLevel = Number(localStorage.getItem("banLevel")) || 0;
+const banUntil = Number(localStorage.getItem("banUntil")) || 0;
 
-/* 追加（仮） */
+checkBan();
+
+/* 追加処理 */
 function addItem() {
+  const now = Date.now();
+
+  // 連打判定（3秒以内に連続）
+  if (now - lastAddTime < 3000) {
+    punish();
+    return;
+  }
+
+  lastAddTime = now;
+
   const name = document.getElementById("name").value;
   const price = document.getElementById("price").value;
 
@@ -156,6 +88,57 @@ function addItem() {
 
   document.getElementById("name").value = "";
   document.getElementById("price").value = "";
+}
+
+/* 制裁 */
+function punish() {
+  let level = Number(localStorage.getItem("banLevel")) || 0;
+  level++;
+  localStorage.setItem("banLevel", level);
+
+  let minutes = 0;
+
+  if (level === 1) minutes = 3;
+  if (level === 2) minutes = 10;
+  if (level >= 3) {
+    localStorage.setItem("banUntil", Infinity);
+    block("永久アクセス禁止されました");
+    return;
+  }
+
+  const until = Date.now() + minutes * 60 * 1000;
+  localStorage.setItem("banUntil", until);
+
+  block(`${minutes}分間 機能使用不可`);
+}
+
+/* 使用不可処理 */
+function block(message) {
+  document.getElementById("addBtn").disabled = true;
+  document.getElementById("notice").textContent = message;
+}
+
+/* 起動時チェック */
+function checkBan() {
+  const now = Date.now();
+  const until = Number(localStorage.getItem("banUntil"));
+
+  if (!until) return;
+
+  if (until === Infinity) {
+    block("永久アクセス禁止されています");
+    return;
+  }
+
+  if (now < until) {
+    const remain = Math.ceil((until - now) / 60000);
+    block(`あと ${remain}分 使用不可`);
+    setTimeout(checkBan, 60000);
+  } else {
+    localStorage.removeItem("banUntil");
+    document.getElementById("addBtn").disabled = false;
+    document.getElementById("notice").textContent = "";
+  }
 }
 </script>
 
