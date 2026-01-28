@@ -67,18 +67,20 @@ button:disabled {
 
 <script>
 const ADMIN_PASSWORD = "0823";
-const MAX_ADD = 5; // ← ここが「作りすぎ」の基準
+const MAX_ADD = 5; // ← ここ超えたら永久BAN
 
 let addCount = Number(localStorage.getItem("addCount")) || 0;
 checkBan();
 
 /* 追加 */
 function addItem() {
+  if (isBanned()) return;
+
   addCount++;
   localStorage.setItem("addCount", addCount);
 
   if (addCount > MAX_ADD) {
-    punish();
+    permanentBan();
     return;
   }
 
@@ -87,6 +89,8 @@ function addItem() {
 
   if (!name || !price) {
     alert("入力してください");
+    addCount--;
+    localStorage.setItem("addCount", addCount);
     return;
   }
 
@@ -98,30 +102,13 @@ function addItem() {
   document.getElementById("price").value = "";
 }
 
-/* 制裁 */
-function punish() {
-  let level = Number(localStorage.getItem("banLevel")) || 0;
-  level++;
-  localStorage.setItem("banLevel", level);
-
-  localStorage.removeItem("addCount");
-
-  if (level === 1) setBan(3);
-  else if (level === 2) setBan(10);
-  else {
-    localStorage.setItem("banUntil", "PERMANENT");
-    block("永久アクセス禁止されています");
-  }
+/* 永久BAN */
+function permanentBan() {
+  localStorage.setItem("ban", "PERMANENT");
+  block("作りすぎのため永久アクセス禁止されました");
 }
 
-/* BAN設定 */
-function setBan(minutes) {
-  const until = Date.now() + minutes * 60 * 1000;
-  localStorage.setItem("banUntil", until);
-  block(`作りすぎのため ${minutes}分 使用不可`);
-}
-
-/* ブロック */
+/* BAN表示 */
 function block(msg) {
   document.getElementById("addBtn").disabled = true;
   document.getElementById("notice").textContent = msg;
@@ -129,22 +116,13 @@ function block(msg) {
 
 /* 起動時チェック */
 function checkBan() {
-  const until = localStorage.getItem("banUntil");
-  if (!until) return;
-
-  if (until === "PERMANENT") {
+  if (isBanned()) {
     block("永久アクセス禁止されています");
-    return;
   }
+}
 
-  const now = Date.now();
-  if (now < Number(until)) {
-    const remain = Math.ceil((Number(until) - now) / 60000);
-    block(`あと ${remain}分 使用不可`);
-    setTimeout(checkBan, 60000);
-  } else {
-    clearBan();
-  }
+function isBanned() {
+  return localStorage.getItem("ban") === "PERMANENT";
 }
 
 /* 管理者解除 */
@@ -154,18 +132,13 @@ function unlock() {
     alert("パスワードが違います");
     return;
   }
-  clearBan();
-  alert("制限を解除しました");
-}
 
-/* 完全解除 */
-function clearBan() {
-  localStorage.removeItem("banUntil");
-  localStorage.removeItem("banLevel");
+  localStorage.removeItem("ban");
   localStorage.removeItem("addCount");
   document.getElementById("addBtn").disabled = false;
   document.getElementById("notice").textContent = "";
   document.getElementById("adminPass").value = "";
+  alert("永久制限を解除しました");
 }
 </script>
 
