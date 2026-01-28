@@ -2,108 +2,120 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SubWatch（サブウォッチ）</title>
+
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       background: #f2f2f7;
       margin: 0;
       padding: 20px;
     }
+
     h1 {
       text-align: center;
     }
+
     .card {
-      background: #fff;
-      padding: 16px;
+      background: white;
+      padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      max-width: 400px;
-      margin: 0 auto 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
+
     input, button {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       margin-top: 10px;
       font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
     }
+
     button {
       background: #007aff;
       color: white;
       border: none;
-      border-radius: 8px;
+      cursor: pointer;
     }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
+
+    /* ===== モーダル ===== */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
       display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid #eee;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
     }
-    .total {
+
+    .modal-content {
+      background: white;
+      padding: 24px;
+      border-radius: 14px;
+      width: 90%;
+      max-width: 320px;
       text-align: center;
-      font-size: 18px;
-      font-weight: bold;
+    }
+
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
 
-<h1>SubWatch（サブウォッチ）</h1>
+  <!-- ===== モーダル1 ===== -->
+  <div id="modal1" class="modal hidden">
+    <div class="modal-content">
+      <h2>SubWatch（サブウォッチ）へようこそ</h2>
+      <button onclick="nextModal()">次へ</button>
+    </div>
+  </div>
 
-<div class="card">
-  <input id="name" placeholder="サブスク名">
-  <input id="price" type="number" placeholder="月額料金（円）">
-  <button onclick="addSub()">追加</button>
-</div>
+  <!-- ===== モーダル2 ===== -->
+  <div id="modal2" class="modal hidden">
+    <div class="modal-content">
+      <h2>保存機能が搭載されました</h2>
+      <button onclick="closeModal()">閉じる</button>
+    </div>
+  </div>
 
-<div class="card">
-  <ul id="list"></ul>
-  <div class="total">合計: ¥<span id="total">0</span></div>
-</div>
+  <!-- ===== メイン画面 ===== -->
+  <h1>SubWatch（サブウォッチ）</h1>
 
-<script>
-  let subs = JSON.parse(localStorage.getItem("subs")) || [];
+  <div class="card">
+    <input type="text" placeholder="サブスク名">
+    <input type="number" placeholder="月額料金（円）">
+    <button>追加</button>
+  </div>
 
-  function save() {
-    localStorage.setItem("subs", JSON.stringify(subs));
-  }
+  <div class="card">
+    <h3>合計: ¥0</h3>
+  </div>
 
-  function render() {
-    const list = document.getElementById("list");
-    list.innerHTML = "";
-    let total = 0;
+  <script>
+    const modal1 = document.getElementById("modal1");
+    const modal2 = document.getElementById("modal2");
 
-    subs.forEach(sub => {
-      const li = document.createElement("li");
-      li.innerHTML = `<span>${sub.name}</span><span>¥${sub.price}</span>`;
-      list.appendChild(li);
-      total += sub.price;
-    });
+    // 初回起動チェック
+    if (!localStorage.getItem("subwatch_welcome")) {
+      modal1.classList.remove("hidden");
+    }
 
-    document.getElementById("total").textContent = total;
-  }
+    function nextModal() {
+      modal1.classList.add("hidden");
+      modal2.classList.remove("hidden");
+    }
 
-  function addSub() {
-    const name = document.getElementById("name").value;
-    const price = Number(document.getElementById("price").value);
-
-    if (!name || !price) return;
-
-    subs.push({ name, price });
-    save();
-    render();
-
-    document.getElementById("name").value = "";
-    document.getElementById("price").value = "";
-  }
-
-  render();
-</script>
+    function closeModal() {
+      modal2.classList.add("hidden");
+      localStorage.setItem("subwatch_welcome", "true");
+    }
+  </script>
 
 </body>
 </html>
