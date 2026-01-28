@@ -2,126 +2,102 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>SubWatch（サブウォッチ）</title>
+<title>SubWatch</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
+/* ===== 共通 ===== */
 body {
+  margin: 0;
   font-family: system-ui, sans-serif;
   background: #f5f5f5;
-  padding: 20px;
 }
 
-h1 {
-  text-align: center;
+/* ===== 起動画面 ===== */
+#splash {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: white;
+  z-index: 9999;
+}
+
+#splash h1 {
+  font-size: 36px;
+  margin: 0;
+}
+
+#splash p {
+  margin-top: 10px;
+  opacity: 0.9;
+}
+
+/* ローディング */
+.loader {
+  margin-top: 30px;
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255,255,255,0.3);
+  border-top: 4px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===== メイン画面 ===== */
+#app {
+  display: none;
+  padding: 20px;
 }
 
 .card {
   background: white;
   padding: 20px;
   border-radius: 12px;
-  max-width: 420px;
+  max-width: 400px;
   margin: auto;
 }
 
-input, button {
+button {
   width: 100%;
   padding: 12px;
-  margin-top: 10px;
   font-size: 16px;
-}
-
-button {
-  background: #007aff;
-  color: white;
-  border: none;
-  border-radius: 8px;
-}
-
-button.sub {
-  background: #ccc;
-  color: #333;
-}
-
-ul {
-  padding-left: 20px;
-}
-
-li {
-  margin-top: 6px;
+  margin-top: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>SubWatch（サブウォッチ）</h1>
+<!-- 起動画面 -->
+<div id="splash">
+  <h1>SubWatch</h1>
+  <p>サブスク管理アプリ</p>
+  <div class="loader"></div>
+</div>
 
-<div class="card">
-
-  <h3>📌 新機能✨</h3>
-  <ul>
-    <li>次回予定：編集機能</li>
-    <li>削除機能</li>
-    <li>完了</li>
-  </ul>
-
-  <hr>
-
-  <label>サブスク名</label>
-  <input id="name" placeholder="例：Netflix">
-
-  <label>月額料金（円）</label>
-  <input id="price" type="number" placeholder="例：990">
-
-  <button onclick="addSub()">追加</button>
-
-  <h3>📊 合計</h3>
-  <p id="total">月額合計：0 円</p>
-  <p id="year">年額合計：0 円</p>
-
-  <hr>
-
-  <h3>👤 アカウント</h3>
-  <button type="button" class="sub" onclick="signupDisabled()">
-    新規登録（現在利用不可）
-  </button>
-
+<!-- メインアプリ -->
+<div id="app">
+  <div class="card">
+    <h2>ようこそ！</h2>
+    <p>SubWatch（サブウォッチ）へようこそ</p>
+    <button>追加</button>
+  </div>
 </div>
 
 <script>
-/* 起動時メッセージ */
-window.onload = () => {
-  alert("SubWatch（サブウォッチ）へようこそ");
-  alert("アカウント作成機能は今後のアップデートで搭載予定です");
-};
-
-let total = 0;
-
-function addSub() {
-  const price = Number(document.getElementById("price").value);
-
-  if (!price) {
-    alert("金額を入力してください");
-    return;
-  }
-
-  total += price;
-
-  document.getElementById("total").textContent =
-    "月額合計：" + total.toLocaleString() + " 円";
-
-  document.getElementById("year").textContent =
-    "年額合計：" + (total * 12).toLocaleString() + " 円";
-
-  document.getElementById("name").value = "";
-  document.getElementById("price").value = "";
-}
-
-/* アカウント作成 無効 */
-function signupDisabled() {
-  alert("現在、アカウント作成機能はご利用になれません。\n今後のアップデートをお楽しみください。");
-}
+/* 起動画面制御 */
+setTimeout(() => {
+  document.getElementById("splash").style.display = "none";
+  document.getElementById("app").style.display = "block";
+}, 2500); // ← 表示時間（ミリ秒）
 </script>
 
 </body>
