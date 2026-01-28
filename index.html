@@ -7,8 +7,67 @@
 
 <style>
 body {
+  margin: 0;
   font-family: system-ui, sans-serif;
   background: #f5f5f5;
+}
+
+/* ===== 起動画面 ===== */
+#splash {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: white;
+  z-index: 1000;
+}
+
+/* ===== 開発中ポップアップ ===== */
+#devModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.dev-box {
+  background: white;
+  border-radius: 14px;
+  padding: 20px;
+  width: 85%;
+  max-width: 320px;
+  text-align: center;
+}
+
+.dev-box h3 {
+  margin-top: 0;
+}
+
+.dev-box p {
+  font-size: 14px;
+  color: #555;
+}
+
+.dev-box button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  background: #4facfe;
+  color: white;
+}
+
+/* ===== メイン ===== */
+#app {
+  display: none;
   padding: 20px;
 }
 
@@ -35,36 +94,66 @@ ul {
 
 <body>
 
-<div class="card">
-  <h2>SubWatch（サブウォッチ）</h2>
+<!-- 起動画面 -->
+<div id="splash">
+  <h1>SubWatch</h1>
+  <p>サブスク管理アプリ</p>
+</div>
 
-  <!-- 入力欄 -->
-  <input id="name" placeholder="サブスク名">
-  <input id="price" type="number" placeholder="月額料金">
+<!-- 開発中ポップアップ -->
+<div id="devModal">
+  <div class="dev-box">
+    <h3>🚧 開発中です</h3>
+    <p>
+      本アプリは現在開発中です。<br>
+      一部機能はご利用いただけません。<br><br>
+      完成までしばらくお待ちください。
+    </p>
+    <button onclick="closeDev()">次へ</button>
+  </div>
+</div>
 
-  <!-- 追加ボタン -->
-  <button onclick="addItem()">追加</button>
+<!-- メイン画面 -->
+<div id="app">
+  <div class="card">
+    <h2>SubWatch（サブウォッチ）</h2>
 
-  <!-- 表示エリア -->
-  <ul id="list"></ul>
+    <input id="name" placeholder="サブスク名">
+    <input id="price" type="number" placeholder="月額料金">
+
+    <button onclick="addItem()">追加</button>
+
+    <ul id="list"></ul>
+  </div>
 </div>
 
 <script>
+/* 起動演出 */
+setTimeout(() => {
+  document.getElementById("splash").style.display = "none";
+  document.getElementById("devModal").style.display = "flex";
+}, 2000);
+
+/* 開発中ポップアップ閉じる */
+function closeDev() {
+  document.getElementById("devModal").style.display = "none";
+  document.getElementById("app").style.display = "block";
+}
+
+/* 追加（仮） */
 function addItem() {
   const name = document.getElementById("name").value;
   const price = document.getElementById("price").value;
 
   if (!name || !price) {
-    alert("入力して！");
+    alert("入力してください");
     return;
   }
 
   const li = document.createElement("li");
   li.textContent = `${name}：¥${price}`;
-
   document.getElementById("list").appendChild(li);
 
-  // 入力欄リセット
   document.getElementById("name").value = "";
   document.getElementById("price").value = "";
 }
