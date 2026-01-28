@@ -1,25 +1,25 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>SubWatch</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
     body {
       margin: 0;
-      padding: 20px;
+      min-height: 100vh;
       font-family: system-ui, sans-serif;
       background: #f2f2f2;
+      padding: 20px;
     }
 
     h1 {
-      font-size: 32px;
       margin-bottom: 20px;
     }
 
     .card {
-      background: #fff;
+      background: rgba(255,255,255,0.95);
       border-radius: 16px;
       padding: 20px;
       max-width: 420px;
@@ -27,14 +27,10 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.15);
     }
 
-    h2 {
-      margin-top: 0;
-    }
-
-    input {
+    input, button {
       width: 100%;
-      padding: 14px;
-      margin-top: 12px;
+      padding: 12px;
+      margin-top: 10px;
       font-size: 16px;
       border-radius: 10px;
       border: 1px solid #ccc;
@@ -42,14 +38,9 @@
     }
 
     button {
-      width: 100%;
-      margin-top: 16px;
-      padding: 14px;
-      font-size: 16px;
-      border-radius: 12px;
-      border: none;
       background: #111;
       color: #fff;
+      border: none;
       cursor: pointer;
     }
 
@@ -62,43 +53,61 @@
     li {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       padding: 10px 0;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid #ddd;
+      gap: 8px;
+    }
+
+    .actions button {
+      width: auto;
+      padding: 6px 10px;
+      font-size: 14px;
+      border-radius: 6px;
+    }
+
+    .edit {
+      background: #eee;
+      color: #000;
+    }
+
+    .delete {
+      background: #ff4d4d;
+      color: #fff;
     }
 
     .total {
       margin-top: 15px;
-      text-align: right;
       font-weight: bold;
-      font-size: 18px;
+      text-align: right;
     }
 
-    /* 起動メッセージ */
+    /* 起動モーダル */
     .overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.4);
-      display: flex;
-      align-items: center;
+      background: rgba(0,0,0,0.5);
+      display: none;
       justify-content: center;
+      align-items: center;
+      z-index: 100;
     }
 
     .modal {
       background: #fff;
       padding: 20px;
       border-radius: 14px;
-      width: 80%;
-      max-width: 320px;
+      max-width: 300px;
+      text-align: center;
     }
 
     .modal button {
       background: none;
       color: #007aff;
-      margin-top: 10px;
+      margin-top: 15px;
     }
   </style>
 </head>
-
 <body>
 
 <h1>SubWatch</h1>
@@ -106,16 +115,13 @@
 <div class="card">
   <h2>サブスク追加</h2>
 
-  <input id="name" type="text" placeholder="サービス名（Netflixなど）">
+  <input id="name" placeholder="サービス名（Netflixなど）">
   <input id="price" type="number" placeholder="月額費用（円）">
-
-  <button onclick="addSub()">追加</button>
+  <button id="addBtn" onclick="addOrUpdate()">追加</button>
 
   <ul id="list"></ul>
 
-  <div class="total">
-    月額合計：¥<span id="total">0</span>
-  </div>
+  <div class="total">月額合計：¥<span id="total">0</span></div>
 </div>
 
 <!-- 起動メッセージ -->
@@ -131,46 +137,86 @@
 </div>
 
 <script>
-  // 保存データ読み込み
   let subs = JSON.parse(localStorage.getItem("subs")) || [];
+  let editIndex = null;
 
-  function render() {
-    const list = document.getElementById("list");
-    const totalSpan = document.getElementById("total");
+  const nameInput = document.getElementById("name");
+  const priceInput = document.getElementById("price");
+  const list = document.getElementById("list");
+  const totalSpan = document.getElementById("total");
+  const addBtn = document.getElementById("addBtn");
 
-    list.innerHTML = "";
-    let total = 0;
-
-    subs.forEach(sub => {
-      const li = document.createElement("li");
-      li.innerHTML = `<span>${sub.name}</span><span>¥${sub.price}</span>`;
-      list.appendChild(li);
-      total += sub.price;
-    });
-
-    totalSpan.textContent = total;
+  function save() {
     localStorage.setItem("subs", JSON.stringify(subs));
   }
 
-  function addSub() {
-    const name = document.getElementById("name").value;
-    const price = Number(document.getElementById("price").value);
+  function render() {
+    list.innerHTML = "";
+    let total = 0;
+
+    subs.forEach((sub, index) => {
+      total += sub.price;
+
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <span>${sub.name} ¥${sub.price}</span>
+        <div class="actions">
+          <button class="edit" onclick="editSub(${index})">編集</button>
+          <button class="delete" onclick="removeSub(${index})">削除</button>
+        </div>
+      `;
+      list.appendChild(li);
+    });
+
+    totalSpan.textContent = total;
+  }
+
+  function addOrUpdate() {
+    const name = nameInput.value.trim();
+    const price = Number(priceInput.value);
 
     if (!name || !price) return;
 
-    subs.push({ name, price });
-    render();
+    if (editIndex === null) {
+      subs.push({ name, price });
+    } else {
+      subs[editIndex] = { name, price };
+      editIndex = null;
+      addBtn.textContent = "追加";
+    }
 
-    document.getElementById("name").value = "";
-    document.getElementById("price").value = "";
+    nameInput.value = "";
+    priceInput.value = "";
+
+    save();
+    render();
+  }
+
+  function editSub(index) {
+    nameInput.value = subs[index].name;
+    priceInput.value = subs[index].price;
+    editIndex = index;
+    addBtn.textContent = "保存";
+  }
+
+  function removeSub(index) {
+    subs.splice(index, 1);
+    save();
+    render();
   }
 
   function closeModal() {
     document.getElementById("overlay").style.display = "none";
   }
 
-  // 初期表示
-  render();
+  window.onload = () => {
+    render();
+
+    if (!localStorage.getItem("launched")) {
+      document.getElementById("overlay").style.display = "flex";
+      localStorage.setItem("launched", "true");
+    }
+  };
 </script>
 
 </body>
