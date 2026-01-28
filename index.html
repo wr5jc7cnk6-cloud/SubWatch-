@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>SubWatch</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <style>
     body {
       font-family: system-ui, sans-serif;
@@ -27,78 +28,83 @@
       font-size: 16px;
     }
     ul {
-      list-style: none;
-      padding: 0;
-      margin-top: 20px;
+      padding-left: 0;
+      margin-top: 15px;
     }
     li {
+      list-style: none;
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
       display: flex;
       justify-content: space-between;
-      margin-bottom: 8px;
+      align-items: center;
     }
-    .total {
-      margin-top: 16px;
-      font-weight: bold;
-      text-align: right;
+    .edit {
+      font-size: 14px;
     }
   </style>
 </head>
+
 <body>
+  <h1>SubWatch</h1>
 
-<h1>SubWatch</h1>
+  <div class="card">
+    <h2>サブスク追加</h2>
 
-<div class="card">
-  <h2>サブスク追加</h2>
-  <input id="name" placeholder="サービス名（Netflixなど）" />
-  <input id="price" type="number" placeholder="月額費用" />
-  <button onclick="addSub()">追加</button>
+    <input id="name" placeholder="サービス名">
+    <input id="price" type="number" placeholder="金額（円）">
 
-  <ul id="list"></ul>
-  <div class="total" id="total"></div>
-</div>
+    <button onclick="addSub()">追加</button>
 
-<script>
-  const listEl = document.getElementById("list");
-  const totalEl = document.getElementById("total");
+    <ul id="list"></ul>
 
-  let subs = JSON.parse(localStorage.getItem("subs")) || [];
+    <p>合計：<span id="total">0</span> 円</p>
+  </div>
 
-  function save() {
-    localStorage.setItem("subs", JSON.stringify(subs));
-  }
+  <script>
+    const nameInput = document.getElementById("name");
+    const priceInput = document.getElementById("price");
+    const list = document.getElementById("list");
+    const totalSpan = document.getElementById("total");
 
-  function render() {
-    listEl.innerHTML = "";
-    let sum = 0;
+    let total = 0;
 
-    subs.forEach(sub => {
+    function addSub() {
+      const name = nameInput.value;
+      const price = Number(priceInput.value);
+
+      if (!name || !price) return;
+
       const li = document.createElement("li");
-      li.textContent = `${sub.name}：¥${sub.price}`;
-      listEl.appendChild(li);
-      sum += sub.price;
-    });
 
-    totalEl.textContent = subs.length
-      ? `月額合計：¥${sum}`
-      : "";
-  }
+      const text = document.createElement("span");
+      text.textContent = `${name}：${price}円`;
 
-  function addSub() {
-    const name = document.getElementById("name").value.trim();
-    const price = Number(document.getElementById("price").value);
+      const editBtn = document.createElement("button");
+      editBtn.textContent = "編集";
+      editBtn.className = "edit";
 
-    if (!name || !price) return;
+      editBtn.onclick = () => {
+        const newPrice = prompt("新しい金額を入力", price);
+        if (!newPrice) return;
 
-    subs.push({ name, price });
-    save();
-    render();
+        total -= price;
+        total += Number(newPrice);
 
-    document.getElementById("name").value = "";
-    document.getElementById("price").value = "";
-  }
+        text.textContent = `${name}：${newPrice}円`;
+        totalSpan.textContent = total;
+      };
 
-  render();
-</script>
+      li.appendChild(text);
+      li.appendChild(editBtn);
+      list.appendChild(li);
 
+      total += price;
+      totalSpan.textContent = total;
+
+      nameInput.value = "";
+      priceInput.value = "";
+    }
+  </script>
 </body>
 </html>
