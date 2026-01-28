@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>SubWatch</title>
+<title>SubWatch（サブウォッチ）</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -11,134 +11,97 @@ body {
   background: #f5f5f5;
   padding: 20px;
 }
-
+h1 {
+  text-align: center;
+}
 .card {
   background: white;
   padding: 20px;
   border-radius: 12px;
-  max-width: 400px;
+  max-width: 420px;
   margin: auto;
 }
-
 input, button {
   width: 100%;
   padding: 12px;
+  margin-top: 10px;
   font-size: 16px;
-  margin-top: 10px;
 }
-
-button:disabled {
+button {
+  background: #007aff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+}
+button.sub {
   background: #ccc;
-}
-
-.notice {
-  color: red;
-  font-weight: bold;
-  margin-top: 10px;
+  color: #333;
 }
 </style>
 </head>
 
 <body>
 
+<h1>SubWatch（サブウォッチ）</h1>
+
 <div class="card">
-  <h2>SubWatch</h2>
 
-  <input id="name" placeholder="サブスク名">
-  <input id="price" type="number" placeholder="月額料金">
+  <p>✨ 新機能</p>
+  <ul>
+    <li>次回予定：保存機能</li>
+    <li>削除機能</li>
+    <li>年額表示</li>
+  </ul>
 
-  <button id="addBtn" onclick="addItem()">追加</button>
+  <hr>
 
-  <p id="notice" class="notice"></p>
-  <ul id="list"></ul>
+  <input id="name" placeholder="サブスク名（例：Netflix）">
+  <input id="price" type="number" placeholder="月額料金（円）">
+
+  <button onclick="addSub()">追加</button>
+
+  <p id="total">月額合計：0 円</p>
+  <p id="year">年額合計：0 円</p>
+
+  <hr>
+
+  <button class="sub" onclick="signupDisabled()">
+    新規登録（現在利用不可）
+  </button>
+
 </div>
 
 <script>
-let addCount = 0;
-let lastAddTime = 0;
+window.onload = () => {
+  alert("SubWatch（サブウォッチ）へようこそ");
+  alert("保存機能は今後のアップデートで搭載予定です");
+};
 
-const banLevel = Number(localStorage.getItem("banLevel")) || 0;
-const banUntil = Number(localStorage.getItem("banUntil")) || 0;
+let total = 0;
 
-checkBan();
+function addSub() {
+  const priceInput = document.getElementById("price").value;
+  const price = Number(priceInput);
 
-/* 追加処理 */
-function addItem() {
-  const now = Date.now();
-
-  // 連打判定（3秒以内に連続）
-  if (now - lastAddTime < 3000) {
-    punish();
+  if (priceInput === "" || isNaN(price) || price <= 0) {
+    alert("正しい金額を入力してください");
     return;
   }
 
-  lastAddTime = now;
+  total += price;
 
-  const name = document.getElementById("name").value;
-  const price = document.getElementById("price").value;
+  document.getElementById("total").textContent =
+    "月額合計：" + total.toLocaleString() + " 円";
 
-  if (!name || !price) {
-    alert("入力してください");
-    return;
-  }
-
-  const li = document.createElement("li");
-  li.textContent = `${name}：¥${price}`;
-  document.getElementById("list").appendChild(li);
+  document.getElementById("year").textContent =
+    "年額合計：" + (total * 12).toLocaleString() + " 円";
 
   document.getElementById("name").value = "";
   document.getElementById("price").value = "";
 }
 
-/* 制裁 */
-function punish() {
-  let level = Number(localStorage.getItem("banLevel")) || 0;
-  level++;
-  localStorage.setItem("banLevel", level);
-
-  let minutes = 0;
-
-  if (level === 1) minutes = 3;
-  if (level === 2) minutes = 10;
-  if (level >= 3) {
-    localStorage.setItem("banUntil", Infinity);
-    block("永久アクセス禁止されました");
-    return;
-  }
-
-  const until = Date.now() + minutes * 60 * 1000;
-  localStorage.setItem("banUntil", until);
-
-  block(`${minutes}分間 機能使用不可`);
-}
-
-/* 使用不可処理 */
-function block(message) {
-  document.getElementById("addBtn").disabled = true;
-  document.getElementById("notice").textContent = message;
-}
-
-/* 起動時チェック */
-function checkBan() {
-  const now = Date.now();
-  const until = Number(localStorage.getItem("banUntil"));
-
-  if (!until) return;
-
-  if (until === Infinity) {
-    block("永久アクセス禁止されています");
-    return;
-  }
-
-  if (now < until) {
-    const remain = Math.ceil((until - now) / 60000);
-    block(`あと ${remain}分 使用不可`);
-    setTimeout(checkBan, 60000);
-  } else {
-    localStorage.removeItem("banUntil");
-    document.getElementById("addBtn").disabled = false;
-    document.getElementById("notice").textContent = "";
-  }
+function signupDisabled() {
+  alert("現在この機能はご利用になれません");
 }
 </script>
 
