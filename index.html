@@ -2,222 +2,52 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>SubWatch</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SubWatch（サブウォッチ）バグ報告</title>
 
   <style>
     body {
       margin: 0;
-      min-height: 100vh;
-      font-family: system-ui, sans-serif;
-      background: #f2f2f2;
-      padding: 20px;
-    }
-
-    h1 {
-      margin-bottom: 20px;
-    }
-
-    .card {
-      background: rgba(255,255,255,0.95);
-      border-radius: 16px;
-      padding: 20px;
-      max-width: 420px;
-      margin: 0 auto;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-    }
-
-    input, button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      font-size: 16px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-
-    button {
-      background: #111;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-    }
-
-    ul {
-      list-style: none;
       padding: 0;
-      margin-top: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   Roboto, Helvetica, Arial, sans-serif;
+      background: #f2f2f2;
     }
 
-    li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid #ddd;
-      gap: 8px;
-    }
-
-    .actions button {
-      width: auto;
-      padding: 6px 10px;
-      font-size: 14px;
-      border-radius: 6px;
-    }
-
-    .edit {
-      background: #eee;
-      color: #000;
-    }
-
-    .delete {
-      background: #ff4d4d;
-      color: #fff;
-    }
-
-    .total {
-      margin-top: 15px;
-      font-weight: bold;
-      text-align: right;
-    }
-
-    /* 起動モーダル */
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 100;
-    }
-
-    .modal {
-      background: #fff;
-      padding: 20px;
-      border-radius: 14px;
-      max-width: 300px;
+    header {
+      background: #ffffff;
+      padding: 16px;
       text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
-    .modal button {
-      background: none;
-      color: #007aff;
-      margin-top: 15px;
+    .container {
+      padding: 12px;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100vh;
+      border: none;
+      border-radius: 12px;
+      background: #fff;
     }
   </style>
 </head>
 <body>
 
-<h1>SubWatch</h1>
+  <header>
+    SubWatch（サブウォッチ） バグ報告
+  </header>
 
-<div class="card">
-  <h2>サブスク追加</h2>
-
-  <input id="name" placeholder="サービス名（Netflixなど）">
-  <input id="price" type="number" placeholder="月額費用（円）">
-  <button id="addBtn" onclick="addOrUpdate()">追加</button>
-
-  <ul id="list"></ul>
-
-  <div class="total">月額合計：¥<span id="total">0</span></div>
-</div>
-
-<!-- 起動メッセージ -->
-<div id="overlay" class="overlay">
-  <div class="modal">
-    <p>
-      保存機能実装されました！<br>
-      今後のアップデートをお楽しみください！<br><br>
-      制作者より
-    </p>
-    <button onclick="closeModal()">閉じる</button>
+  <div class="container">
+    <iframe
+      src="https://docs.google.com/forms/d/e/1Wg_Jvw3HTeb2-FpSQUtT2kW9wJOCMN8wp6EukISWt_Y/viewform"
+      loading="lazy"
+    ></iframe>
   </div>
-</div>
-
-<script>
-  let subs = JSON.parse(localStorage.getItem("subs")) || [];
-  let editIndex = null;
-
-  const nameInput = document.getElementById("name");
-  const priceInput = document.getElementById("price");
-  const list = document.getElementById("list");
-  const totalSpan = document.getElementById("total");
-  const addBtn = document.getElementById("addBtn");
-
-  function save() {
-    localStorage.setItem("subs", JSON.stringify(subs));
-  }
-
-  function render() {
-    list.innerHTML = "";
-    let total = 0;
-
-    subs.forEach((sub, index) => {
-      total += sub.price;
-
-      const li = document.createElement("li");
-      li.innerHTML = `
-        <span>${sub.name} ¥${sub.price}</span>
-        <div class="actions">
-          <button class="edit" onclick="editSub(${index})">編集</button>
-          <button class="delete" onclick="removeSub(${index})">削除</button>
-        </div>
-      `;
-      list.appendChild(li);
-    });
-
-    totalSpan.textContent = total;
-  }
-
-  function addOrUpdate() {
-    const name = nameInput.value.trim();
-    const price = Number(priceInput.value);
-
-    if (!name || !price) return;
-
-    if (editIndex === null) {
-      subs.push({ name, price });
-    } else {
-      subs[editIndex] = { name, price };
-      editIndex = null;
-      addBtn.textContent = "追加";
-    }
-
-    nameInput.value = "";
-    priceInput.value = "";
-
-    save();
-    render();
-  }
-
-  function editSub(index) {
-    nameInput.value = subs[index].name;
-    priceInput.value = subs[index].price;
-    editIndex = index;
-    addBtn.textContent = "保存";
-  }
-
-  function removeSub(index) {
-    subs.splice(index, 1);
-    save();
-    render();
-  }
-
-  function closeModal() {
-    document.getElementById("overlay").style.display = "none";
-  }
-
-  window.onload = () => {
-    render();
-
-    if (!localStorage.getItem("launched")) {
-      document.getElementById("overlay").style.display = "flex";
-      localStorage.setItem("launched", "true");
-    }
-  };
-</script>
 
 </body>
 </html>
