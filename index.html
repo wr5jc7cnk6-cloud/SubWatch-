@@ -1,81 +1,98 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>SubWatch</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <style>
-  body {
-    font-family: system-ui, sans-serif;
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
 
-    background-image: url("background.jpg");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+      /* 背景画像 */
+      background-image: url("background.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
 
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-  }
+    h1 {
+      text-align: center;
+      margin-top: 40px;
+      color: #fff;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+    }
 
-  h1 {
-    text-align: center;
-  }
+    .card {
+      background: rgba(255, 255, 255, 0.92);
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 400px;
+      margin: 30px auto;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
 
-  .card {
-    background: rgba(255, 255, 255, 0.9);
-    padding: 20px;
-    border-radius: 12px;
-    max-width: 400px;
-    width: 100%;
-    margin-top: 40px;
-  }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
 
-  input, button {
-    width: 100%;
-    padding: 12px;
-    margin-top: 10px;
-    font-size: 16px;
-  }
+    button {
+      background: #111;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
 
-  ul {
-    padding-left: 0;
-    margin-top: 15px;
-  }
+    button:hover {
+      opacity: 0.85;
+    }
 
-  li {
-    list-style: none;
-    padding: 8px;
-    border-bottom: 1px solid #ddd;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+    ul {
+      padding-left: 0;
+      margin-top: 15px;
+    }
 
-  .edit {
-    font-size: 14px;
-  }
+    li {
+      list-style: none;
+      padding: 8px 0;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .total {
+      text-align: right;
+      font-weight: bold;
+      margin-top: 15px;
+    }
   </style>
 </head>
 
 <body>
+
   <h1>SubWatch</h1>
 
   <div class="card">
     <h2>サブスク追加</h2>
 
-    <input id="name" placeholder="サービス名">
-    <input id="price" type="number" placeholder="金額（円）">
-
+    <input id="name" type="text" placeholder="サービス名（Netflixなど）" />
+    <input id="price" type="number" placeholder="月額費用（円）" />
     <button onclick="addSub()">追加</button>
 
     <ul id="list"></ul>
 
-    <p>合計：<span id="total">0</span> 円</p>
+    <div class="total">
+      月額合計：¥<span id="total">0</span>
+    </div>
   </div>
 
   <script>
@@ -93,27 +110,7 @@
       if (!name || !price) return;
 
       const li = document.createElement("li");
-
-      const text = document.createElement("span");
-      text.textContent = `${name}：${price}円`;
-
-      const editBtn = document.createElement("button");
-      editBtn.textContent = "編集";
-      editBtn.className = "edit";
-
-      editBtn.onclick = () => {
-        const newPrice = prompt("新しい金額を入力", price);
-        if (!newPrice) return;
-
-        total -= price;
-        total += Number(newPrice);
-
-        text.textContent = `${name}：${newPrice}円`;
-        totalSpan.textContent = total;
-      };
-
-      li.appendChild(text);
-      li.appendChild(editBtn);
+      li.textContent = `${name} : ¥${price}`;
       list.appendChild(li);
 
       total += price;
@@ -123,5 +120,6 @@
       priceInput.value = "";
     }
   </script>
+
 </body>
 </html>
