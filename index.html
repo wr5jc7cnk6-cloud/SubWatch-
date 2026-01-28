@@ -1,132 +1,177 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>SubWatch</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
     body {
-  margin: 0;
-  min-height: 100vh;
-  font-family: system-ui, sans-serif;
-  background-image: url("background.jpg");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-    }
-      /* 背景画像 */
-      background-image: url("background.jpg");
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
+      margin: 0;
+      padding: 20px;
+      font-family: system-ui, sans-serif;
+      background: #f2f2f2;
     }
 
     h1 {
-      text-align: center;
-      margin-top: 40px;
-      color: #fff;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+      font-size: 32px;
+      margin-bottom: 20px;
     }
 
     .card {
-      background: rgba(255, 255, 255, 0.92);
+      background: #fff;
+      border-radius: 16px;
       padding: 20px;
-      border-radius: 12px;
-      max-width: 400px;
-      margin: 30px auto;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      max-width: 420px;
+      margin: 0 auto;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
     }
 
-    input, button {
+    h2 {
+      margin-top: 0;
+    }
+
+    input {
       width: 100%;
-      padding: 12px;
-      margin-top: 10px;
+      padding: 14px;
+      margin-top: 12px;
       font-size: 16px;
-      border-radius: 8px;
+      border-radius: 10px;
       border: 1px solid #ccc;
       box-sizing: border-box;
     }
 
     button {
+      width: 100%;
+      margin-top: 16px;
+      padding: 14px;
+      font-size: 16px;
+      border-radius: 12px;
+      border: none;
       background: #111;
       color: #fff;
-      border: none;
       cursor: pointer;
     }
 
-    button:hover {
-      opacity: 0.85;
-    }
-
     ul {
-      padding-left: 0;
-      margin-top: 15px;
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
     }
 
     li {
-      list-style: none;
-      padding: 8px 0;
-      border-bottom: 1px solid #ddd;
       display: flex;
       justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
     }
 
     .total {
+      margin-top: 15px;
       text-align: right;
       font-weight: bold;
-      margin-top: 15px;
+      font-size: 18px;
+    }
+
+    /* 起動メッセージ */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal {
+      background: #fff;
+      padding: 20px;
+      border-radius: 14px;
+      width: 80%;
+      max-width: 320px;
+    }
+
+    .modal button {
+      background: none;
+      color: #007aff;
+      margin-top: 10px;
     }
   </style>
 </head>
-<script>
-  window.addEventListener("load", () => {
-    alert("※まだ保存されません。\n今後のアップデートをお楽しみください！制作者より");
-  });
-</script>
+
 <body>
 
-  <h1>SubWatch</h1>
+<h1>SubWatch</h1>
 
-  <div class="card">
-    <h2>サブスク追加</h2>
+<div class="card">
+  <h2>サブスク追加</h2>
 
-    <input id="name" type="text" placeholder="サービス名（Netflixなど）" />
-    <input id="price" type="number" placeholder="月額費用（円）" />
-    <button onclick="addSub()">追加</button>
+  <input id="name" type="text" placeholder="サービス名（Netflixなど）">
+  <input id="price" type="number" placeholder="月額費用（円）">
 
-    <ul id="list"></ul>
+  <button onclick="addSub()">追加</button>
 
-    <div class="total">
-      月額合計：¥<span id="total">0</span>
-    </div>
+  <ul id="list"></ul>
+
+  <div class="total">
+    月額合計：¥<span id="total">0</span>
   </div>
+</div>
 
-  <script>
-    const nameInput = document.getElementById("name");
-    const priceInput = document.getElementById("price");
+<!-- 起動メッセージ -->
+<div id="overlay" class="overlay">
+  <div class="modal">
+    <p>
+      保存機能実装されました！<br>
+      今後のアップデートをお楽しみください！<br><br>
+      制作者より
+    </p>
+    <button onclick="closeModal()">閉じる</button>
+  </div>
+</div>
+
+<script>
+  // 保存データ読み込み
+  let subs = JSON.parse(localStorage.getItem("subs")) || [];
+
+  function render() {
     const list = document.getElementById("list");
     const totalSpan = document.getElementById("total");
 
+    list.innerHTML = "";
     let total = 0;
 
-    function addSub() {
-      const name = nameInput.value;
-      const price = Number(priceInput.value);
-
-      if (!name || !price) return;
-
+    subs.forEach(sub => {
       const li = document.createElement("li");
-      li.textContent = `${name} : ¥${price}`;
+      li.innerHTML = `<span>${sub.name}</span><span>¥${sub.price}</span>`;
       list.appendChild(li);
+      total += sub.price;
+    });
 
-      total += price;
-      totalSpan.textContent = total;
+    totalSpan.textContent = total;
+    localStorage.setItem("subs", JSON.stringify(subs));
+  }
 
-      nameInput.value = "";
-      priceInput.value = "";
-    }
-  </script>
+  function addSub() {
+    const name = document.getElementById("name").value;
+    const price = Number(document.getElementById("price").value);
+
+    if (!name || !price) return;
+
+    subs.push({ name, price });
+    render();
+
+    document.getElementById("name").value = "";
+    document.getElementById("price").value = "";
+  }
+
+  function closeModal() {
+    document.getElementById("overlay").style.display = "none";
+  }
+
+  // 初期表示
+  render();
+</script>
 
 </body>
 </html>
