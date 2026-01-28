@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>SubWatch（サブウォッチ）</title>
+<title>SubWatch</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -11,97 +11,161 @@ body {
   background: #f5f5f5;
   padding: 20px;
 }
-h1 {
-  text-align: center;
-}
+
 .card {
   background: white;
   padding: 20px;
   border-radius: 12px;
-  max-width: 420px;
+  max-width: 400px;
   margin: auto;
 }
+
 input, button {
   width: 100%;
   padding: 12px;
-  margin-top: 10px;
   font-size: 16px;
+  margin-top: 10px;
 }
-button {
-  background: #007aff;
-  color: white;
-  border: none;
-  border-radius: 8px;
-}
-button.sub {
+
+button:disabled {
   background: #ccc;
-  color: #333;
+}
+
+.notice {
+  color: red;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.admin {
+  margin-top: 20px;
+  border-top: 1px dashed #ccc;
+  padding-top: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>SubWatch（サブウォッチ）</h1>
-
 <div class="card">
+  <h2>SubWatch</h2>
 
-  <p>✨ 新機能</p>
-  <ul>
-    <li>次回予定：保存機能</li>
-    <li>削除機能</li>
-    <li>年額表示</li>
-  </ul>
+  <input id="name" placeholder="サブスク名">
+  <input id="price" type="number" placeholder="月額料金">
 
-  <hr>
+  <button id="addBtn" onclick="addItem()">追加</button>
 
-  <input id="name" placeholder="サブスク名（例：Netflix）">
-  <input id="price" type="number" placeholder="月額料金（円）">
+  <p id="notice" class="notice"></p>
+  <ul id="list"></ul>
 
-  <button onclick="addSub()">追加</button>
-
-  <p id="total">月額合計：0 円</p>
-  <p id="year">年額合計：0 円</p>
-
-  <hr>
-
-  <button class="sub" onclick="signupDisabled()">
-    新規登録（現在利用不可）
-  </button>
-
+  <div class="admin">
+    <p>🔒 管理者解除</p>
+    <input id="adminPass" type="password" placeholder="パスワード">
+    <button onclick="unlock()">解除</button>
+  </div>
 </div>
 
 <script>
-window.onload = () => {
-  alert("SubWatch（サブウォッチ）へようこそ");
-  alert("保存機能は今後のアップデートで搭載予定です");
-};
+const ADMIN_PASSWORD = "0823";
+const MAX_ADD = 5; // ← ここが「作りすぎ」の基準
 
-let total = 0;
+let addCount = Number(localStorage.getItem("addCount")) || 0;
+checkBan();
 
-function addSub() {
-  const priceInput = document.getElementById("price").value;
-  const price = Number(priceInput);
+/* 追加 */
+function addItem() {
+  addCount++;
+  localStorage.setItem("addCount", addCount);
 
-  if (priceInput === "" || isNaN(price) || price <= 0) {
-    alert("正しい金額を入力してください");
+  if (addCount > MAX_ADD) {
+    punish();
     return;
   }
 
-  total += price;
+  const name = document.getElementById("name").value;
+  const price = document.getElementById("price").value;
 
-  document.getElementById("total").textContent =
-    "月額合計：" + total.toLocaleString() + " 円";
+  if (!name || !price) {
+    alert("入力してください");
+    return;
+  }
 
-  document.getElementById("year").textContent =
-    "年額合計：" + (total * 12).toLocaleString() + " 円";
+  const li = document.createElement("li");
+  li.textContent = `${name}：¥${price}`;
+  document.getElementById("list").appendChild(li);
 
   document.getElementById("name").value = "";
   document.getElementById("price").value = "";
 }
 
-function signupDisabled() {
-  alert("現在この機能はご利用になれません");
+/* 制裁 */
+function punish() {
+  let level = Number(localStorage.getItem("banLevel")) || 0;
+  level++;
+  localStorage.setItem("banLevel", level);
+
+  localStorage.removeItem("addCount");
+
+  if (level === 1) setBan(3);
+  else if (level === 2) setBan(10);
+  else {
+    localStorage.setItem("banUntil", "PERMANENT");
+    block("永久アクセス禁止されています");
+  }
+}
+
+/* BAN設定 */
+function setBan(minutes) {
+  const until = Date.now() + minutes * 60 * 1000;
+  localStorage.setItem("banUntil", until);
+  block(`作りすぎのため ${minutes}分 使用不可`);
+}
+
+/* ブロック */
+function block(msg) {
+  document.getElementById("addBtn").disabled = true;
+  document.getElementById("notice").textContent = msg;
+}
+
+/* 起動時チェック */
+function checkBan() {
+  const until = localStorage.getItem("banUntil");
+  if (!until) return;
+
+  if (until === "PERMANENT") {
+    block("永久アクセス禁止されています");
+    return;
+  }
+
+  const now = Date.now();
+  if (now < Number(until)) {
+    const remain = Math.ceil((Number(until) - now) / 60000);
+    block(`あと ${remain}分 使用不可`);
+    setTimeout(checkBan, 60000);
+  } else {
+    clearBan();
+  }
+}
+
+/* 管理者解除 */
+function unlock() {
+  const pass = document.getElementById("adminPass").value;
+  if (pass !== ADMIN_PASSWORD) {
+    alert("パスワードが違います");
+    return;
+  }
+  clearBan();
+  alert("制限を解除しました");
+}
+
+/* 完全解除 */
+function clearBan() {
+  localStorage.removeItem("banUntil");
+  localStorage.removeItem("banLevel");
+  localStorage.removeItem("addCount");
+  document.getElementById("addBtn").disabled = false;
+  document.getElementById("notice").textContent = "";
+  document.getElementById("adminPass").value = "";
 }
 </script>
 
