@@ -2,81 +2,134 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SubWatch（サブウォッチ）</title>
+<title>SubWatch</title>
 
-<style>
-body {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #f2f2f7;
-  margin: 0;
-  padding: 20px;
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged,
+createUserWithEmailAndPassword,
+signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "API_KEY",
+  authDomain: "PROJECT.firebaseapp.com",
+  projectId: "PROJECT_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let uid = "";
+
+/* 年齢確認 */
+if (!localStorage.getItem("ageOK")) {
+  showModal("年齢確認", "13歳以上ですか？", [
+    { text: "はい", action: () => {
+      localStorage.setItem("ageOK", "true");
+      closeModal();
+      showNewFeature();
+    }},
+    { text: "いいえ", action: () => alert("利用できません") }
+  ]);
+} else if (!localStorage.getItem("newFeature")) {
+  showNewFeature();
 }
 
-h1 {
-  text-align: center;
+function showNewFeature() {
+  showModal("新機能✨", "保存機能が搭載されました", [
+    { text: "閉じる", action: () => {
+      localStorage.setItem("newFeature", "true");
+      closeModal();
+    }}
+  ]);
 }
 
-.card {
-  background: #fff;
-  border-radius: 14px;
-  padding: 16px;
-  margin-bottom: 16px;
+/* 認証 */
+onAuthStateChanged(auth, user => {
+  if (!user) return;
+  uid = user.uid;
+  loadSubs();
+});
+
+/* UI関数 */
+window.signup = () => {
+  createUserWithEmailAndPassword(auth, email.value, password.value)
+    .catch(e => alert(e.message));
+};
+
+window.login = () => {
+  signInWithEmailAndPassword(auth, email.value, password.value)
+    .catch(e => alert(e.message));
+};
+
+/* サブスク */
+window.addSub = async () => {
+  if (!subName.value || !price.value) return;
+  await addDoc(collection(db, "users", uid, "subs"), {
+    name: subName.value,
+    price: Number(price.value),
+    date: new Date().toISOString().slice(0,10)
+  });
+  subName.value = "";
+  price.value = "";
+  loadSubs();
+};
+
+async function loadSubs() {
+  list.innerHTML = "";
+  let total = 0;
+  const snap = await getDocs(collection(db, "users", uid, "subs"));
+  snap.forEach(d => {
+    const s = d.data();
+    total += s.price;
+    list.innerHTML += `
+      <li>
+        ${s.name} ¥${s.price}
+        <small>次回: ${s.date}</small>
+        <button onclick="deleteSub('${d.id}')">削除</button>
+      </li>`;
+  });
+  monthly.textContent = `月額合計: ¥${total}`;
+  yearly.textContent = `年額合計: ¥${total * 12}`;
 }
 
-input {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-}
-
-button {
-  width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  background: #007aff;
-  color: white;
-  font-size: 16px;
-}
-
-.list-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.delete {
-  background: #ff3b30;
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-size: 12px;
-}
+window.deleteSub = async (id) => {
+  await deleteDoc(doc(db, "users", uid, "subs", id));
+  loadSubs();
+};
 
 /* モーダル */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.4);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+window.showModal = (title, text, buttons) => {
+  modal.style.display = "flex";
+  modalBox.innerHTML = `<h2>${title}</h2><p>${text}</p>`;
+  buttons.forEach(b => {
+    const btn = document.createElement("button");
+    btn.textContent = b.text;
+    btn.onclick = b.action;
+    modalBox.appendChild(btn);
+  });
+};
 
+window.closeModal = () => modal.style.display = "none";
+</script>
+
+<style>
+body { font-family: sans-serif; background:#f2f2f2; text-align:center; }
+input,button { padding:10px; margin:5px; width:80%; max-width:300px; }
+button { background:#007aff; color:#fff; border:none; border-radius:6px; }
+ul { list-style:none; padding:0; }
+li { background:#fff; margin:10px; padding:10px; border-radius:8px; }
+small { display:block; color:#666; }
 .modal {
-  background: #fff;
-  padding: 20px;
-  border-radius: 16px;
-  width: 85%;
-  max-width: 320px;
-  text-align: center;
+  position:fixed; inset:0; background:rgba(0,0,0,.5);
+  display:none; align-items:center; justify-content:center;
 }
-
-.hidden {
-  display: none;
+.modal-box {
+  background:#fff; padding:20px; border-radius:10px;
+  width:80%; max-width:300px;
 }
 </style>
 </head>
@@ -85,140 +138,27 @@ button {
 
 <h1>SubWatch（サブウォッチ）</h1>
 
-<!-- 追加 -->
-<div class="card">
-  <input id="name" placeholder="サブスク名">
-  <input id="price" type="number" placeholder="月額料金（円）">
-  <button onclick="addSub()">追加</button>
+<h3>アカウント</h3>
+<input id="email" placeholder="メール">
+<input id="password" type="password" placeholder="パスワード">
+<button onclick="signup()">新規登録</button>
+<button onclick="login()">ログイン</button>
+
+<hr>
+
+<input id="subName" placeholder="サブスク名">
+<input id="price" type="number" placeholder="月額料金（円）">
+<button onclick="addSub()">追加</button>
+
+<ul id="list"></ul>
+
+<h3 id="monthly">月額合計: ¥0</h3>
+<h3 id="yearly">年額合計: ¥0</h3>
+
+<!-- モーダル -->
+<div id="modal" class="modal">
+  <div id="modalBox" class="modal-box"></div>
 </div>
-
-<!-- リスト -->
-<div class="card">
-  <div id="list"></div>
-</div>
-
-<!-- 合計 -->
-<div class="card">
-  <p>月額合計：¥<span id="monthly">0</span></p>
-  <p>年額合計：¥<span id="yearly">0</span></p>
-</div>
-
-<!-- 次回予定 -->
-<div class="card">
-  <h3>次回予定</h3>
-  <ul>
-    <li>編集機能</li>
-    <li>カテゴリ分け</li>
-    <li>クラウド同期</li>
-  </ul>
-</div>
-
-<!-- 年齢確認 -->
-<div id="ageModal" class="overlay hidden">
-  <div class="modal">
-    <h2>年齢確認</h2>
-    <p>18歳以上ですか？</p>
-    <button onclick="confirmAge()">はい</button>
-    <button onclick="denyAge()" style="margin-top:8px;background:#ccc;color:#000;">いいえ</button>
-  </div>
-</div>
-
-<!-- ようこそ -->
-<div id="welcomeModal" class="overlay hidden">
-  <div class="modal">
-    <h2>SubWatchへようこそ</h2>
-    <button onclick="nextIntro()">次へ</button>
-  </div>
-</div>
-
-<!-- 新機能 -->
-<div id="featureModal" class="overlay hidden">
-  <div class="modal">
-    <h2>新機能✨</h2>
-    <p>保存機能が搭載されました</p>
-    <button onclick="closeFeature()">閉じる</button>
-  </div>
-</div>
-
-<script>
-/* 保存 */
-let subs = JSON.parse(localStorage.getItem("subs")) || [];
-
-/* 年齢確認 */
-if (!localStorage.getItem("ageConfirmed")) {
-  document.getElementById("ageModal").classList.remove("hidden");
-} else if (!localStorage.getItem("introDone")) {
-  document.getElementById("welcomeModal").classList.remove("hidden");
-}
-
-/* 年齢OK */
-function confirmAge() {
-  localStorage.setItem("ageConfirmed", "true");
-  document.getElementById("ageModal").classList.add("hidden");
-  document.getElementById("welcomeModal").classList.remove("hidden");
-}
-
-/* 年齢NG */
-function denyAge() {
-  document.body.innerHTML = "<h2 style='text-align:center'>利用できません</h2>";
-}
-
-/* イントロ */
-function nextIntro() {
-  document.getElementById("welcomeModal").classList.add("hidden");
-  document.getElementById("featureModal").classList.remove("hidden");
-}
-
-function closeFeature() {
-  localStorage.setItem("introDone", "true");
-  document.getElementById("featureModal").classList.add("hidden");
-}
-
-/* 追加 */
-function addSub() {
-  const name = document.getElementById("name").value;
-  const price = Number(document.getElementById("price").value);
-  if (!name || !price) return;
-
-  subs.push({ name, price });
-  localStorage.setItem("subs", JSON.stringify(subs));
-  document.getElementById("name").value = "";
-  document.getElementById("price").value = "";
-  render();
-}
-
-/* 削除 */
-function removeSub(i) {
-  subs.splice(i, 1);
-  localStorage.setItem("subs", JSON.stringify(subs));
-  render();
-}
-
-/* 描画 */
-function render() {
-  const list = document.getElementById("list");
-  const monthly = document.getElementById("monthly");
-  const yearly = document.getElementById("yearly");
-
-  list.innerHTML = "";
-  let total = 0;
-
-  subs.forEach((s, i) => {
-    total += s.price;
-    list.innerHTML += `
-      <div class="list-item">
-        <span>${s.name} ¥${s.price}</span>
-        <button class="delete" onclick="removeSub(${i})">削除</button>
-      </div>
-    `;
-  });
-
-  monthly.textContent = total;
-  yearly.textContent = total * 12;
-}
-
-render();
-</script>
 
 </body>
 </html>
