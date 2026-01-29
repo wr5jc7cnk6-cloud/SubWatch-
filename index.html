@@ -3,159 +3,199 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SubWatch Pro</title>
-
+<title>SubWatch</title>
 <style>
 body {
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;
-  background:#000;
-  color:#fff;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f2f2f2;
+  padding: 20px;
 }
-
-.container { padding:24px; }
-
-.card {
-  background:#1c1c1e;
-  border-radius:18px;
-  padding:24px;
-  margin-top:60px;
+input, button {
+  padding: 8px;
+  margin: 6px 0;
+  width: 100%;
 }
-
-.price { font-size:36px; font-weight:700; margin:20px 0; }
-
-.buy-btn {
-  width:100%;
-  padding:14px;
-  font-size:17px;
-  font-weight:600;
-  background:#007aff;
-  border:none;
-  border-radius:14px;
-  color:#fff;
+.item { margin: 6px 0; }
+.ban {
+  text-align: center;
+  margin-top: 60px;
 }
-
-.buy-btn:active { opacity:.7; }
-
-/* Face ID モーダル */
-.faceid {
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.9);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  z-index:100;
+.line-btn {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 10px;
+  background: #06C755;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 6px;
 }
-
-.circle {
-  width:140px;
-  height:140px;
-  border-radius:50%;
-  border:4px solid #007aff;
-  animation: scan 2s linear infinite;
-}
-
-@keyframes scan {
-  from { transform:rotate(0deg); }
-  to { transform:rotate(360deg); }
-}
-
-.face-text {
-  margin-top:20px;
-  font-size:16px;
-  opacity:.9;
-}
-
-.check {
-  font-size:60px;
-  color:#0f0;
-  display:none;
+.note {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #555;
 }
 </style>
 </head>
-
 <body>
-<div id="app" class="container"></div>
+
+<div id="app"></div>
 
 <script>
-let isPro = localStorage.getItem("pro_paid")==="true";
-let items = JSON.parse(localStorage.getItem("pro_items")||"[]");
+/* ===== 設定 ===== */
+const PLAN = "normal"; // normal | lite | pro
+const LIMITS = { normal: 3, lite: 5, pro: Infinity };
+const ADMIN_PIN = "0823";
+const MAX_WARN = 5;
+const MAX_UNLOCK_FAIL = 3;
+const LINE_URL = "https://line.me/R/ti/p/@254pdcli";
 
-function render(){
-  const app=document.getElementById("app");
-  app.innerHTML="";
+/* ===== 状態 ===== */
+let items = JSON.parse(localStorage.getItem("items") || "[]");
+let warnings = Number(localStorage.getItem("warnings") || 0);
+let banned = localStorage.getItem("banned") === "true";
+let unlockFails = Number(localStorage.getItem("unlockFails") || 0);
+let permaBan = localStorage.getItem("permaBan") === "true";
 
-  if(!isPro){
-    app.innerHTML=`
-      <div class="card">
-        <h1>SubWatch Pro</h1>
-        <p>すべての制限を解除</p>
+/* ===== 今日の解除番号 ===== */
+function todayUnlockCode() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `SUBWATCH-UNLOCK-${y}${m}${day}`;
+}
 
-        <div class="price">¥300</div>
-        <ul>
-          <li>✔ 登録数 無制限</li>
-          <li>✔ BAN・制限なし</li>
-        </ul>
+/* ===== 描画 ===== */
+function render() {
+  const app = document.getElementById("app");
+  app.innerHTML = "";
 
-        <button class="buy-btn" onclick="startFaceID()">購入する</button>
+  /* 永久停止 */
+  if (permaBan) {
+    app.innerHTML = `
+      <div class="ban">
+        <h1>🚫 永久停止中</h1>
+        <p>管理人PINを入力してください</p>
+        <input id="pin" placeholder="管理人PIN">
+        <button onclick="adminUnlock()">解除</button>
+
+        <a class="line-btn" href="${LINE_URL}" target="_blank">公式LINEへ</a>
+        <div class="note">※申し立ては1度のみご利用頂けます</div>
       </div>
     `;
     return;
   }
 
-  app.innerHTML=`
-    <h1>🌟 SubWatch Pro</h1>
+  /* BAN */
+  if (banned) {
+    app.innerHTML = `
+      <div class="ban">
+        <h1>🚫 BANされました</h1>
+        <p>解除番号を入力してください</p>
+        <input id="code" placeholder="解除番号">
+        <button onclick="unlock()">解除</button>
+        <p>失敗 ${unlockFails}/${MAX_UNLOCK_FAIL}</p>
+
+        <a class="line-btn" href="${LINE_URL}" target="_blank">公式LINEへ</a>
+        <div class="note">※申し立ては1度のみご利用頂けます</div>
+      </div>
+    `;
+    return;
+  }
+
+  /* 通常画面 */
+  app.innerHTML = `
+    <h1>SubWatch</h1>
+    <p>${PLAN}版</p>
+
     <input id="name" placeholder="サービス名">
     <input id="price" placeholder="金額">
-    <button class="buy-btn" onclick="add()">追加</button>
+    <button onclick="addItem()">追加</button>
+
     <div id="list"></div>
   `;
 
-  const list=document.getElementById("list");
-  items.forEach(i=>{
-    const d=document.createElement("div");
-    d.textContent=`${i.name} / ¥${i.price}`;
-    list.appendChild(d);
+  const list = document.getElementById("list");
+  items.forEach(i => {
+    const div = document.createElement("div");
+    div.className = "item";
+    div.textContent = `${i.name} / ¥${i.price}`;
+    list.appendChild(div);
   });
 }
 
-/* Face ID開始 */
-function startFaceID(){
-  const modal=document.createElement("div");
-  modal.className="faceid";
-  modal.innerHTML=`
-    <div class="circle"></div>
-    <div class="check">✓</div>
-    <div class="face-text">Face IDで認証中…</div>
-  `;
-  document.body.appendChild(modal);
+/* ===== 追加 ===== */
+function addItem() {
+  if (items.length >= LIMITS[PLAN]) {
+    warnings++;
+    localStorage.setItem("warnings", warnings);
 
-  setTimeout(()=>{
-    modal.querySelector(".circle").style.display="none";
-    modal.querySelector(".check").style.display="block";
-    modal.querySelector(".face-text").textContent="認証完了";
-  },2000);
+    if (warnings >= MAX_WARN) {
+      banned = true;
+      localStorage.setItem("banned", "true");
+      render();
+      return;
+    }
 
-  setTimeout(()=>{
-    localStorage.setItem("pro_paid","true");
-    isPro=true;
-    modal.remove();
-    render();
-  },3000);
+    alert(`登録上限です（警告 ${warnings}/${MAX_WARN}）`);
+    return;
+  }
+
+  const name = document.getElementById("name").value;
+  const price = document.getElementById("price").value;
+  if (!name || !price) return;
+
+  items.push({ name, price });
+  localStorage.setItem("items", JSON.stringify(items));
+  render();
 }
 
-function add(){
-  const n=document.getElementById("name").value;
-  const p=document.getElementById("price").value;
-  if(!n||!p) return;
-  items.push({name:n,price:p});
-  localStorage.setItem("pro_items",JSON.stringify(items));
-  render();
+/* ===== 通常BAN解除 ===== */
+function unlock() {
+  const input = document.getElementById("code").value.trim();
+
+  if (input === todayUnlockCode()) {
+    banned = false;
+    warnings = 0;
+    unlockFails = 0;
+    localStorage.removeItem("banned");
+    localStorage.removeItem("warnings");
+    localStorage.removeItem("unlockFails");
+    render();
+    return;
+  }
+
+  unlockFails++;
+  localStorage.setItem("unlockFails", unlockFails);
+
+  if (unlockFails >= MAX_UNLOCK_FAIL) {
+    permaBan = true;
+    localStorage.setItem("permaBan", "true");
+    render();
+    return;
+  }
+
+  alert("解除番号が違います");
+}
+
+/* ===== 永久停止解除（管理人PIN） ===== */
+function adminUnlock() {
+  const pin = document.getElementById("pin").value.trim();
+
+  if (pin === ADMIN_PIN) {
+    localStorage.clear();
+    banned = false;
+    permaBan = false;
+    warnings = 0;
+    unlockFails = 0;
+    render();
+  } else {
+    alert("管理人PINが違います");
+  }
 }
 
 render();
 </script>
+
 </body>
 </html>
