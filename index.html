@@ -2,121 +2,174 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SubWatch</title>
 <style>
-body { font-family: sans-serif; padding: 20px; }
-input, button { padding: 6px; margin-right: 5px; }
-.item { margin-top: 8px; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f2f2f2;
+  padding: 20px;
+}
+input, button {
+  padding: 8px;
+  margin: 6px 0;
+}
+.item { margin: 6px 0; }
+.ban {
+  text-align: center;
+  margin-top: 60px;
+}
 </style>
 </head>
 <body>
 
-<h1>SubWatch</h1>
-<p id="versionText"></p>
-
-<input id="name" placeholder="名前">
-<input id="price" type="number" placeholder="金額">
-<button onclick="addItem()">追加</button>
-
-<div id="list"></div>
+<div id="app"></div>
 
 <script>
 /* ===== 設定 ===== */
-const VERSION = "normal"; // normal / lite / pro
+const PLAN = "normal"; // normal | lite | pro
 const LIMITS = { normal: 3, lite: 5, pro: Infinity };
+const ADMIN_PIN = "0823";
+const MAX_WARN = 5;
+const MAX_UNLOCK_FAIL = 3;
 
 /* ===== 状態 ===== */
 let items = JSON.parse(localStorage.getItem("items") || "[]");
-let banCount = Number(localStorage.getItem("banCount") || 0);
-let isBanned = localStorage.getItem("isBanned") === "true";
+let warnings = Number(localStorage.getItem("warnings") || 0);
+let banned = localStorage.getItem("banned") === "true";
+let unlockFails = Number(localStorage.getItem("unlockFails") || 0);
+let permaBan = localStorage.getItem("permaBan") === "true";
 
-/* ===== 初期表示 ===== */
-document.getElementById("versionText").innerText =
-  VERSION === "normal" ? "通常版（3件まで）" :
-  VERSION === "lite" ? "Lite版（5件まで）" :
-  "Pro版（無制限）";
+/* ===== 今日の解除番号 ===== */
+function todayUnlockCode() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `SUBWATCH-UNLOCK-${y}${m}${day}`;
+}
 
-if (isBanned) showBan();
-render();
+/* ===== 描画 ===== */
+function render() {
+  const app = document.getElementById("app");
+  app.innerHTML = "";
 
-/* ===== 追加 ===== */
-function addItem() {
-  if (isBanned) return;
-
-  const name = document.getElementById("name").value;
-  const price = document.getElementById("price").value;
-
-  if (!name || !price) return alert("未入力があります");
-
-  if (items.length >= LIMITS[VERSION]) {
-    banCount++;
-    localStorage.setItem("banCount", banCount);
-
-    if (banCount >= 5) {
-      localStorage.setItem("isBanned", "true");
-      showBan();
-      return;
-    }
-
-    alert(`登録上限です（警告 ${banCount}/5）`);
+  if (permaBan) {
+    app.innerHTML = `
+      <div class="ban">
+        <h1>🚫 永久停止中</h1>
+        <p>管理人PINを入力してください</p>
+        <input id="pin" placeholder="管理人PIN">
+        <button onclick="adminUnlock()">解除</button>
+      </div>
+    `;
     return;
   }
 
-  items.push({ name, price });
-  localStorage.setItem("items", JSON.stringify(items));
+  if (banned) {
+    app.innerHTML = `
+      <div class="ban">
+        <h1>🚫 BANされました</h1>
+        <p>解除番号を入力してください</p>
+        <input id="code" placeholder="解除番号">
+        <button onclick="unlock()">解除</button>
+        <p>失敗 ${unlockFails}/${MAX_UNLOCK_FAIL}</p>
+      </div>
+    `;
+    return;
+  }
 
-  document.getElementById("name").value = "";
-  document.getElementById("price").value = "";
+  app.innerHTML = `
+    <h1>SubWatch</h1>
+    <p>${PLAN}版</p>
 
-  render(); // ← ★これが無いと表示されない
-}
+    <input id="name" placeholder="サービス名">
+    <input id="price" placeholder="金額">
+    <button onclick="addItem()">追加</button>
 
-/* ===== 表示 ===== */
-function render() {
+    <div id="list"></div>
+  `;
+
   const list = document.getElementById("list");
-  list.innerHTML = "";
-
-  items.forEach((item, i) => {
+  items.forEach(i => {
     const div = document.createElement("div");
     div.className = "item";
-    div.innerHTML = `${item.name} / ¥${item.price}
-      <button onclick="removeItem(${i})">削除</button>`;
+    div.textContent = `${i.name} / ¥${i.price}`;
     list.appendChild(div);
   });
 }
 
-/* ===== 削除 ===== */
-function removeItem(i) {
-  items.splice(i, 1);
+/* ===== 追加 ===== */
+function addItem() {
+  if (items.length >= LIMITS[PLAN]) {
+    warnings++;
+    localStorage.setItem("warnings", warnings);
+
+    if (warnings >= MAX_WARN) {
+      banned = true;
+      localStorage.setItem("banned", "true");
+      render();
+      return;
+    }
+
+    alert(`登録上限です（警告 ${warnings}/${MAX_WARN}）`);
+    return;
+  }
+
+  const name = document.getElementById("name").value;
+  const price = document.getElementById("price").value;
+  if (!name || !price) return;
+
+  items.push({ name, price });
   localStorage.setItem("items", JSON.stringify(items));
   render();
 }
 
-/* ===== BAN ===== */
-function showBan() {
-  document.body.innerHTML = `
-    <h2>🚫 BANされました</h2>
-    <p>解除コードを入力してください</p>
-    <input id="unlock">
-    <button onclick="unlock()">解除</button>
-    <br><br>
-    <button onclick="goLine()">公式LINE</button>
-  `;
+/* ===== 通常BAN解除 ===== */
+function unlock() {
+  const input = document.getElementById("code").value.trim();
+
+  if (input === todayUnlockCode()) {
+    banned = false;
+    warnings = 0;
+    unlockFails = 0;
+    localStorage.removeItem("banned");
+    localStorage.removeItem("warnings");
+    localStorage.removeItem("unlockFails");
+    render();
+    return;
+  }
+
+  unlockFails++;
+  localStorage.setItem("unlockFails", unlockFails);
+
+  if (unlockFails >= MAX_UNLOCK_FAIL) {
+    permaBan = true;
+    localStorage.setItem("permaBan", "true");
+    render();
+    return;
+  }
+
+  alert("解除番号が違います");
 }
 
-function unlock() {
-  const code = document.getElementById("unlock").value;
-  if (code === "SUBWATCH-UNLOCK") {
+/* ===== 永久停止解除（管理人専用） ===== */
+function adminUnlock() {
+  const pin = document.getElementById("pin").value.trim();
+
+  if (pin === ADMIN_PIN) {
     localStorage.clear();
-    location.reload();
+    banned = false;
+    permaBan = false;
+    warnings = 0;
+    unlockFails = 0;
+    render();
   } else {
-    alert("コードが違います");
+    alert("管理人PINが違います");
   }
 }
 
-function goLine() {
-  location.href = "https://line.me/R/ti/p/@254pdcli";
-}
+render();
 </script>
 
 </body>
