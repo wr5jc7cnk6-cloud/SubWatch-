@@ -2,154 +2,55 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SubWatch Pro</title>
-
 <style>
-body {
-  font-family: system-ui, sans-serif;
-  padding: 20px;
-}
-
-h1 {
-  font-size: 28px;
-}
-
-input {
-  padding: 8px;
-  margin-right: 5px;
-  width: 140px;
-}
-
-button {
-  padding: 8px 12px;
-}
-
-ul {
-  padding: 0;
-  margin-top: 20px;
-}
-
-li {
-  list-style: none;
-  margin: 8px 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-#total {
-  margin-top: 15px;
-  font-weight: bold;
-}
-
-/* モーダル */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: none;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal {
-  background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  text-align: center;
-}
+body { font-family: sans-serif; padding: 20px; }
+input, button { padding: 6px; margin-right: 5px; }
+.item { margin-top: 8px; }
 </style>
 </head>
-
 <body>
 
 <h1>SubWatch Pro</h1>
-<p>Proバージョンを使用しています。</p>
+<p>Pro版（無制限）</p>
 
-<input id="nameInput" placeholder="サブスク名">
-<input id="priceInput" type="number" placeholder="月額(円)">
+<input id="name" placeholder="名前">
+<input id="price" type="number" placeholder="金額">
 <button onclick="addItem()">追加</button>
 
-<ul id="list"></ul>
-
-<p id="total">合計：¥0 / 月</p>
-
-<!-- アップデート通知 -->
-<div id="updateModal" class="overlay">
-  <div class="modal">
-    <p>アップデートがあります</p>
-    <button onclick="startUpdate()">アップデート</button>
-  </div>
-</div>
-
-<!-- 読み込み -->
-<div id="loading" class="overlay">
-  <div class="modal">
-    <p>更新中...</p>
-  </div>
-</div>
+<div id="list"></div>
 
 <script>
-const list = document.getElementById("list");
-const totalText = document.getElementById("total");
-let total = 0;
+let items = JSON.parse(localStorage.getItem("pro_items") || "[]");
+render();
 
-/* 追加 */
 function addItem() {
-  const name = document.getElementById("nameInput").value;
-  const price = Number(document.getElementById("priceInput").value);
+  const name = nameInput.value;
+  const price = priceInput.value;
+  if (!name || !price) return alert("未入力があります");
 
-  if (!name || !price) return;
-
-  const li = document.createElement("li");
-  li.dataset.price = price;
-
-  li.innerHTML = `
-    <span>${name} / ¥${price.toLocaleString()}</span>
-    <button onclick="removeItem(this)">削除</button>
-  `;
-
-  list.appendChild(li);
-
-  total += price;
-  updateTotal();
-
-  document.getElementById("nameInput").value = "";
-  document.getElementById("priceInput").value = "";
+  items.push({ name, price });
+  localStorage.setItem("pro_items", JSON.stringify(items));
+  nameInput.value = priceInput.value = "";
+  render();
 }
 
-/* 削除 */
-function removeItem(btn) {
-  const li = btn.parentElement;
-  total -= Number(li.dataset.price);
-  li.remove();
-  updateTotal();
+function render() {
+  list.innerHTML = "";
+  items.forEach((i, idx) => {
+    list.innerHTML += `
+      <div class="item">
+        ${i.name} / ¥${i.price}
+        <button onclick="del(${idx})">削除</button>
+      </div>`;
+  });
 }
 
-/* 合計更新 */
-function updateTotal() {
-  totalText.textContent = `合計：¥${total.toLocaleString()} / 月`;
-}
-
-/* 初回アップデート通知 */
-window.onload = () => {
-  if (!localStorage.getItem("proUpdated")) {
-    document.getElementById("updateModal").style.display = "flex";
-  }
-};
-
-/* アップデート */
-function startUpdate() {
-  document.getElementById("updateModal").style.display = "none";
-  document.getElementById("loading").style.display = "flex";
-
-  setTimeout(() => {
-    document.getElementById("loading").style.display = "none";
-    localStorage.setItem("proUpdated", "true");
-  }, 2000);
+function del(i) {
+  items.splice(i, 1);
+  localStorage.setItem("pro_items", JSON.stringify(items));
+  render();
 }
 </script>
-
 </body>
 </html>
