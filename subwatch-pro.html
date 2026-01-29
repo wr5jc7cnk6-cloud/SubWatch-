@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SubWatch Pro</title>
+<title>SubWatch Lite</title>
 
 <style>
 body {
@@ -34,13 +34,15 @@ button {
   background:#e0e0e0;
 }
 button.active {
-  background:#4CAF50;
+  background:#2196F3;
   color:#fff;
 }
-.warning { color:#e65100; font-weight:bold; }
-.lock { color:red; font-weight:bold; }
+.warning {
+  color:#e65100;
+  font-weight:bold;
+}
 
-/* ===== 起動画面 ===== */
+/* ===== 起動画面（Proと同じ構成） ===== */
 #splash {
   position:fixed;
   inset:0;
@@ -63,13 +65,14 @@ button.active {
   opacity:1;
 }
 
-/* Pro は右から来る */
-#pro {
+/* Lite が右から来る */
+#lite {
   margin-left:8px;
   opacity:0;
   transform: translateX(80px);
   animation: slideIn 0.8s ease-out forwards;
   animation-delay:0.4s;
+  color:#2196F3;
 }
 
 @keyframes slideIn {
@@ -87,43 +90,33 @@ button.active {
 <div id="splash">
   <div id="logo">
     <span id="subwatch">SubWatch</span>
-    <span id="pro">Pro</span>
+    <span id="lite">Lite</span>
   </div>
 </div>
 
-<!-- メインアプリ -->
+<!-- メイン -->
 <div id="app" class="card hidden">
-  <h1>SubWatch Pro</h1>
+
+  <h1>SubWatch Lite</h1>
 
   <input id="subName" placeholder="サブスク名">
   <input id="subPrice" type="number" placeholder="月額料金（円）">
 
-  <button id="addBtn" class="active" onclick="addSub()">追加</button>
+  <button class="active" onclick="addSub()">追加</button>
 
   <p id="warning" class="warning"></p>
+
   <ul id="list"></ul>
   <p><strong>合計（月額）：¥<span id="total">0</span></strong></p>
 
-  <hr>
-
-  <h3>🔒 管理者解除</h3>
-  <input id="adminPass" type="password" placeholder="解除パスワード">
-  <button onclick="unlock()">解除</button>
-  <p id="lockMsg" class="lock"></p>
-
   <p style="font-size:12px;color:#666;">
-    ※ 開発中です。完成までお待ちください
+    ※ Lite版は簡易管理用です
   </p>
+
 </div>
 
 <script>
-/* ===== 設定 ===== */
-const LIMIT_PRICE = 50000;
-const ADMIN_PASSWORD = "0823";
-
-/* ===== 状態 ===== */
-let subs = JSON.parse(localStorage.getItem("subs") || "[]");
-let locked = localStorage.getItem("locked") === "true";
+let subs = JSON.parse(localStorage.getItem("liteSubs") || "[]");
 
 /* ===== 起動処理（必ず進む） ===== */
 window.addEventListener("load", () => {
@@ -136,11 +129,6 @@ window.addEventListener("load", () => {
 
 /* ===== 追加 ===== */
 function addSub() {
-  if (locked) {
-    alert("追加しすぎてロックされています");
-    return;
-  }
-
   const name = subName.value.trim();
   const price = Number(subPrice.value);
 
@@ -150,7 +138,7 @@ function addSub() {
   }
 
   subs.push({ name, price });
-  localStorage.setItem("subs", JSON.stringify(subs));
+  localStorage.setItem("liteSubs", JSON.stringify(subs));
 
   subName.value = "";
   subPrice.value = "";
@@ -170,34 +158,8 @@ function render() {
   });
 
   totalEl.textContent = total.toLocaleString();
-  warning.textContent = "";
-  lockMsg.textContent = "";
-
-  if (total > LIMIT_PRICE) {
-    warning.textContent = "⚠ 追加しすぎてませんか？月額5万円を超えています";
-    locked = true;
-    localStorage.setItem("locked", "true");
-  }
-
-  if (locked) {
-    lockMsg.textContent = "現在ロック中（管理者解除が必要）";
-    addBtn.classList.remove("active");
-  } else {
-    addBtn.classList.add("active");
-  }
-}
-
-/* ===== 解除 ===== */
-function unlock() {
-  if (adminPass.value === ADMIN_PASSWORD) {
-    locked = false;
-    localStorage.setItem("locked", "false");
-    alert("解除しました");
-    adminPass.value = "";
-    render();
-  } else {
-    alert("パスワードが違います");
-  }
+  warning.textContent =
+    total > 50000 ? "⚠ 月額5万円を超えています" : "";
 }
 </script>
 
