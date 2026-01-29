@@ -37,6 +37,11 @@ button:disabled {
   margin-top: 10px;
 }
 
+.total {
+  margin-top: 15px;
+  font-weight: bold;
+}
+
 .admin {
   margin-top: 20px;
   border-top: 1px dashed #ccc;
@@ -56,7 +61,12 @@ button:disabled {
   <button id="addBtn" onclick="addItem()">追加</button>
 
   <p id="notice" class="notice"></p>
+
   <ul id="list"></ul>
+
+  <div class="total">
+    合計（月額）：¥<span id="total">0</span>
+  </div>
 
   <div class="admin">
     <p>🔒 管理者解除</p>
@@ -67,9 +77,13 @@ button:disabled {
 
 <script>
 const ADMIN_PASSWORD = "0823";
-const MAX_ADD = 5; // ← ここ超えたら永久BAN
+const MAX_ADD = 5;
 
 let addCount = Number(localStorage.getItem("addCount")) || 0;
+let total = Number(localStorage.getItem("total")) || 0;
+
+document.getElementById("total").textContent = total;
+
 checkBan();
 
 /* 追加 */
@@ -85,7 +99,7 @@ function addItem() {
   }
 
   const name = document.getElementById("name").value;
-  const price = document.getElementById("price").value;
+  const price = Number(document.getElementById("price").value);
 
   if (!name || !price) {
     alert("入力してください");
@@ -98,6 +112,10 @@ function addItem() {
   li.textContent = `${name}：¥${price}`;
   document.getElementById("list").appendChild(li);
 
+  total += price;
+  localStorage.setItem("total", total);
+  document.getElementById("total").textContent = total;
+
   document.getElementById("name").value = "";
   document.getElementById("price").value = "";
 }
@@ -108,13 +126,13 @@ function permanentBan() {
   block("作りすぎのため永久アクセス禁止されました");
 }
 
-/* BAN表示 */
+/* 表示制御 */
 function block(msg) {
   document.getElementById("addBtn").disabled = true;
   document.getElementById("notice").textContent = msg;
 }
 
-/* 起動時チェック */
+/* BAN確認 */
 function checkBan() {
   if (isBanned()) {
     block("永久アクセス禁止されています");
@@ -135,10 +153,17 @@ function unlock() {
 
   localStorage.removeItem("ban");
   localStorage.removeItem("addCount");
+  localStorage.removeItem("total");
+
+  addCount = 0;
+  total = 0;
+
+  document.getElementById("total").textContent = "0";
   document.getElementById("addBtn").disabled = false;
   document.getElementById("notice").textContent = "";
   document.getElementById("adminPass").value = "";
-  alert("永久制限を解除しました");
+
+  alert("制限と合計をリセットしました");
 }
 </script>
 
