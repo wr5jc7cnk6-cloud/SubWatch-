@@ -3,62 +3,94 @@
 <head>
 <meta charset="UTF-8">
 <title>SubWatch Lite</title>
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body {
-  margin: 0;
-  background: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 20px;
 }
 
-/* 起動画面 */
-#splash {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36px;
-  font-weight: bold;
-  animation: fadeOut 1s ease 2.5s forwards;
+input, button {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  margin-top: 8px;
 }
 
-/* メイン画面 */
-#app {
-  display: none;
-  padding: 20px;
+ul {
+  margin-top: 20px;
+  padding: 0;
 }
 
-/* フェードアウト */
-@keyframes fadeOut {
-  to {
-    opacity: 0;
-    visibility: hidden;
-  }
+li {
+  list-style: none;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.notice {
+  margin-top: 20px;
+  color: #666;
+  font-size: 14px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- 起動画面 -->
-<div id="splash">
-  SubWatch Lite
-</div>
+<h1>SubWatch Lite</h1>
+<p>ようこそ！</p>
+<p>現在 Lite バージョンを使用しています。</p>
 
-<!-- メイン -->
-<div id="app">
-  <h1>SubWatch Lite</h1>
-  <p>ようこそ！</p>
-  <p>現在 Lite バージョンを使用しています。</p>
-</div>
+<input id="name" placeholder="サービス名">
+<input id="price" type="number" placeholder="月額料金（円）">
+
+<button id="addBtn">追加</button>
+
+<ul id="list"></ul>
+
+<p class="notice">
+※ Lite版では合計金額表示・警告機能は使用できません。<br>
+Pro版で全機能が解放されます。
+</p>
 
 <script>
-setTimeout(() => {
-  document.getElementById("app").style.display = "block";
-}, 2500);
+const nameInput = document.getElementById("name");
+const priceInput = document.getElementById("price");
+const addBtn = document.getElementById("addBtn");
+const list = document.getElementById("list");
+
+let data = JSON.parse(localStorage.getItem("subwatch-lite")) || [];
+
+function render() {
+  list.innerHTML = "";
+  data.forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = `${item.name}：¥${item.price}`;
+    list.appendChild(li);
+  });
+}
+
+addBtn.onclick = () => {
+  const name = nameInput.value.trim();
+  const price = priceInput.value.trim();
+
+  if (!name || !price) {
+    alert("入力してください");
+    return;
+  }
+
+  data.push({ name, price });
+  localStorage.setItem("subwatch-lite", JSON.stringify(data));
+
+  nameInput.value = "";
+  priceInput.value = "";
+
+  render();
+};
+
+render();
 </script>
 
 </body>
