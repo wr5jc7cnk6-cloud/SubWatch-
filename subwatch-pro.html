@@ -7,197 +7,147 @@
 
 <style>
 body {
-  margin:0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background:#f5f5f5;
+  font-family: system-ui, sans-serif;
+  padding: 20px;
 }
 
-/* ===== 共通 ===== */
-.hidden { display:none; }
-.card {
-  background:#fff;
-  border-radius:14px;
-  padding:20px;
-  max-width:420px;
-  margin:40px auto;
-  box-shadow:0 8px 20px rgba(0,0,0,.1);
+h1 {
+  font-size: 28px;
 }
-input, button {
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  font-size:16px;
+
+input {
+  padding: 8px;
+  margin-right: 5px;
+  width: 140px;
 }
+
 button {
-  border:none;
-  border-radius:8px;
-  background:#e0e0e0;
-}
-button.active {
-  background:#4CAF50;
-  color:#fff;
-}
-.warning { color:#e65100; font-weight:bold; }
-.lock { color:red; font-weight:bold; }
-
-/* ===== 起動画面 ===== */
-#splash {
-  position:fixed;
-  inset:0;
-  background:#fff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:999;
+  padding: 8px 12px;
 }
 
-#logo {
-  display:flex;
-  align-items:center;
-  font-size:36px;
-  font-weight:700;
+ul {
+  padding: 0;
+  margin-top: 20px;
 }
 
-/* SubWatch は最初から表示 */
-#subwatch {
-  opacity:1;
+li {
+  list-style: none;
+  margin: 8px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-/* Pro は右から来る */
-#pro {
-  margin-left:8px;
-  opacity:0;
-  transform: translateX(80px);
-  animation: slideIn 0.8s ease-out forwards;
-  animation-delay:0.4s;
+#total {
+  margin-top: 15px;
+  font-weight: bold;
 }
 
-@keyframes slideIn {
-  to {
-    opacity:1;
-    transform: translateX(0);
-  }
+/* モーダル */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
 }
 </style>
 </head>
 
 <body>
 
-<!-- 起動画面 -->
-<div id="splash">
-  <div id="logo">
-    <span id="subwatch">SubWatch</span>
-    <span id="pro">Pro</span>
+<h1>SubWatch Pro</h1>
+<p>Proバージョンを使用しています。</p>
+
+<input id="nameInput" placeholder="サブスク名">
+<input id="priceInput" type="number" placeholder="月額(円)">
+<button onclick="addItem()">追加</button>
+
+<ul id="list"></ul>
+
+<p id="total">合計：¥0 / 月</p>
+
+<!-- アップデート通知 -->
+<div id="updateModal" class="overlay">
+  <div class="modal">
+    <p>アップデートがあります</p>
+    <button onclick="startUpdate()">アップデート</button>
   </div>
 </div>
 
-<!-- メインアプリ -->
-<div id="app" class="card hidden">
-  <h1>SubWatch Pro</h1>
-
-  <input id="subName" placeholder="サブスク名">
-  <input id="subPrice" type="number" placeholder="月額料金（円）">
-
-  <button id="addBtn" class="active" onclick="addSub()">追加</button>
-
-  <p id="warning" class="warning"></p>
-  <ul id="list"></ul>
-  <p><strong>合計（月額）：¥<span id="total">0</span></strong></p>
-
-  <hr>
-
-  <h3>🔒 管理者解除</h3>
-  <input id="adminPass" type="password" placeholder="解除パスワード">
-  <button onclick="unlock()">解除</button>
-  <p id="lockMsg" class="lock"></p>
-
-  <p style="font-size:12px;color:#666;">
-    ※ 開発中です。完成までお待ちください
-  </p>
+<!-- 読み込み -->
+<div id="loading" class="overlay">
+  <div class="modal">
+    <p>更新中...</p>
+  </div>
 </div>
 
 <script>
-/* ===== 設定 ===== */
-const LIMIT_PRICE = 50000;
-const ADMIN_PASSWORD = "0823";
+const list = document.getElementById("list");
+const totalText = document.getElementById("total");
+let total = 0;
 
-/* ===== 状態 ===== */
-let subs = JSON.parse(localStorage.getItem("subs") || "[]");
-let locked = localStorage.getItem("locked") === "true";
+/* 追加 */
+function addItem() {
+  const name = document.getElementById("nameInput").value;
+  const price = Number(document.getElementById("priceInput").value);
 
-/* ===== 起動処理（必ず進む） ===== */
-window.addEventListener("load", () => {
+  if (!name || !price) return;
+
+  const li = document.createElement("li");
+  li.dataset.price = price;
+
+  li.innerHTML = `
+    <span>${name} / ¥${price.toLocaleString()}</span>
+    <button onclick="removeItem(this)">削除</button>
+  `;
+
+  list.appendChild(li);
+
+  total += price;
+  updateTotal();
+
+  document.getElementById("nameInput").value = "";
+  document.getElementById("priceInput").value = "";
+}
+
+/* 削除 */
+function removeItem(btn) {
+  const li = btn.parentElement;
+  total -= Number(li.dataset.price);
+  li.remove();
+  updateTotal();
+}
+
+/* 合計更新 */
+function updateTotal() {
+  totalText.textContent = `合計：¥${total.toLocaleString()} / 月`;
+}
+
+/* 初回アップデート通知 */
+window.onload = () => {
+  if (!localStorage.getItem("proUpdated")) {
+    document.getElementById("updateModal").style.display = "flex";
+  }
+};
+
+/* アップデート */
+function startUpdate() {
+  document.getElementById("updateModal").style.display = "none";
+  document.getElementById("loading").style.display = "flex";
+
   setTimeout(() => {
-    document.getElementById("splash").style.display = "none";
-    document.getElementById("app").classList.remove("hidden");
-    render();
-  }, 1800);
-});
-
-/* ===== 追加 ===== */
-function addSub() {
-  if (locked) {
-    alert("追加しすぎてロックされています");
-    return;
-  }
-
-  const name = subName.value.trim();
-  const price = Number(subPrice.value);
-
-  if (!name || price <= 0) {
-    alert("正しく入力してください");
-    return;
-  }
-
-  subs.push({ name, price });
-  localStorage.setItem("subs", JSON.stringify(subs));
-
-  subName.value = "";
-  subPrice.value = "";
-  render();
-}
-
-/* ===== 描画 ===== */
-function render() {
-  list.innerHTML = "";
-  let total = 0;
-
-  subs.forEach(s => {
-    const li = document.createElement("li");
-    li.textContent = `${s.name}：¥${s.price}`;
-    list.appendChild(li);
-    total += s.price;
-  });
-
-  totalEl.textContent = total.toLocaleString();
-  warning.textContent = "";
-  lockMsg.textContent = "";
-
-  if (total > LIMIT_PRICE) {
-    warning.textContent = "⚠ 追加しすぎてませんか？月額5万円を超えています";
-    locked = true;
-    localStorage.setItem("locked", "true");
-  }
-
-  if (locked) {
-    lockMsg.textContent = "現在ロック中（管理者解除が必要）";
-    addBtn.classList.remove("active");
-  } else {
-    addBtn.classList.add("active");
-  }
-}
-
-/* ===== 解除 ===== */
-function unlock() {
-  if (adminPass.value === ADMIN_PASSWORD) {
-    locked = false;
-    localStorage.setItem("locked", "false");
-    alert("解除しました");
-    adminPass.value = "";
-    render();
-  } else {
-    alert("パスワードが違います");
-  }
+    document.getElementById("loading").style.display = "none";
+    localStorage.setItem("proUpdated", "true");
+  }, 2000);
 }
 </script>
 
