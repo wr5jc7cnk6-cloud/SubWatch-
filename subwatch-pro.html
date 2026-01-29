@@ -4,22 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SubWatch Pro</title>
+
 <style>
 body {
-  font-family: system-ui, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   background:#f5f5f5;
   margin:0;
-  padding:20px;
+  padding:0;
 }
+
+/* 共通 */
+.hidden { display:none; }
 .card {
   background:#fff;
-  border-radius:12px;
+  border-radius:14px;
   padding:20px;
   max-width:420px;
-  margin:auto;
-  box-shadow:0 5px 15px rgba(0,0,0,.1);
+  margin:40px auto;
+  box-shadow:0 8px 20px rgba(0,0,0,.1);
 }
-h1 { margin-top:0 }
 input, button {
   width:100%;
   padding:12px;
@@ -29,49 +32,104 @@ input, button {
 button {
   border:none;
   border-radius:8px;
-  background:#ddd;
+  background:#e0e0e0;
 }
 button.active {
   background:#4CAF50;
-  color:white;
+  color:#fff;
 }
 .warning {
   color:#e65100;
   font-weight:bold;
-  margin-top:10px;
 }
 .lock {
   color:red;
   font-weight:bold;
 }
-ul { padding-left:20px }
-hr { margin:20px 0 }
+
+/* ===== 起動画面 ===== */
+#splash {
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#ffffff;
+  overflow:hidden;
+}
+
+#logo {
+  display:flex;
+  align-items:center;
+  font-size:34px;
+  font-weight:700;
+}
+
+#logo span {
+  opacity:0;
+}
+
+/* SubWatch（固定） */
+#subwatch {
+  opacity:1;
+}
+
+/* Pro（右から） */
+#pro {
+  margin-left:8px;
+  animation: slideIn 1s ease-out forwards;
+  animation-delay: 0.5s;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100px);
+    opacity:0;
+  }
+  to {
+    transform: translateX(0);
+    opacity:1;
+  }
+}
 </style>
 </head>
 
 <body>
-<div class="card">
 
-<h1>SubWatch Pro</h1>
+<!-- 起動画面 -->
+<div id="splash">
+  <div id="logo">
+    <span id="subwatch">SubWatch</span>
+    <span id="pro">Pro</span>
+  </div>
+</div>
 
-<input id="subName" placeholder="サブスク名">
-<input id="subPrice" type="number" placeholder="月額料金（円）">
+<!-- メインアプリ -->
+<div id="app" class="card hidden">
 
-<button id="addBtn" onclick="addSub()">追加</button>
+  <h1>SubWatch Pro</h1>
 
-<div id="warning" class="warning"></div>
+  <input id="subName" placeholder="サブスク名">
+  <input id="subPrice" type="number" placeholder="月額料金（円）">
 
-<ul id="list"></ul>
+  <button id="addBtn" onclick="addSub()" class="active">追加</button>
 
-<p><strong>合計（月額）：¥<span id="total">0</span></strong></p>
+  <p id="warning" class="warning"></p>
 
-<hr>
+  <ul id="list"></ul>
 
-<h3>🔒 管理者解除</h3>
-<input id="adminPass" type="password" placeholder="パスワード">
-<button onclick="unlock()">解除</button>
+  <p><strong>合計（月額）：¥<span id="total">0</span></strong></p>
 
-<div id="lockMsg" class="lock"></div>
+  <hr>
+
+  <h3>🔒 管理者解除</h3>
+  <input id="adminPass" type="password" placeholder="解除パスワード">
+  <button onclick="unlock()">解除</button>
+
+  <p id="lockMsg" class="lock"></p>
+
+  <p style="font-size:12px;color:#666;">
+    ※ 開発中です。完成までお待ちください
+  </p>
 
 </div>
 
@@ -84,13 +142,17 @@ const ADMIN_PASSWORD = "0823";
 let subs = JSON.parse(localStorage.getItem("subs") || "[]");
 let locked = localStorage.getItem("locked") === "true";
 
-/* ===== 初期描画 ===== */
-render();
+/* ===== 起動処理 ===== */
+setTimeout(() => {
+  document.getElementById("splash").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  render();
+}, 2000);
 
-/* ===== 追加処理 ===== */
+/* ===== 追加 ===== */
 function addSub() {
   if (locked) {
-    alert("追加しすぎてロック中です");
+    alert("追加しすぎてロックされています");
     return;
   }
 
@@ -98,7 +160,7 @@ function addSub() {
   const price = Number(subPrice.value);
 
   if (!name || price <= 0) {
-    alert("正しく入力して");
+    alert("正しく入力してください");
     return;
   }
 
@@ -118,7 +180,7 @@ function render() {
 
   subs.forEach(s => {
     const li = document.createElement("li");
-    li.textContent = `${s.name} : ¥${s.price}`;
+    li.textContent = `${s.name}：¥${s.price}`;
     list.appendChild(li);
     total += s.price;
   });
@@ -134,10 +196,11 @@ function render() {
     localStorage.setItem("locked", "true");
   }
 
-  document.getElementById("addBtn").className = locked ? "" : "active";
-
   if (locked) {
     lockMsg.textContent = "現在ロック中（管理者解除が必要）";
+    addBtn.classList.remove("active");
+  } else {
+    addBtn.classList.add("active");
   }
 }
 
@@ -150,7 +213,7 @@ function unlock() {
     adminPass.value = "";
     render();
   } else {
-    alert("パスワード違います");
+    alert("パスワードが違います");
   }
 }
 </script>
