@@ -4,143 +4,127 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SubWatch</title>
+
 <style>
 body {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #f5f5f5;
-  margin: 0;
+  font-family: system-ui, sans-serif;
   padding: 20px;
 }
-.card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 20px;
-  max-width: 420px;
-  margin: auto;
+
+h1 {
+  font-size: 28px;
 }
-input, button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 10px;
-  font-size: 16px;
+
+input {
+  padding: 8px;
+  margin-right: 5px;
+  width: 140px;
 }
+
 button {
-  border: none;
-  border-radius: 8px;
-  background: #e0e0e0;
+  padding: 8px 12px;
 }
-.warning {
-  color: #d97706;
-  font-weight: bold;
+
+ul {
+  padding: 0;
+  margin-top: 20px;
 }
-.hidden {
+
+li {
+  list-style: none;
+  margin: 8px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* アップデート */
+#updateModal, #loading {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
   display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
 }
 </style>
 </head>
 
 <body>
 
-<!-- 利用規約画面 -->
-<div id="terms" class="card hidden">
-  <h1>SubWatch</h1>
-  <p>📜 利用規約に同意してください</p>
-  <label>
-    <input type="checkbox" id="human"> 私は人間です
-  </label>
-  <button onclick="agree()">同意して始める</button>
+<h1>SubWatch</h1>
+
+<input id="nameInput" placeholder="サブスク名">
+<input id="priceInput" type="number" placeholder="月額(円)">
+<button onclick="addItem()">追加</button>
+
+<ul id="list"></ul>
+
+<!-- アップデート通知 -->
+<div id="updateModal">
+  <div class="modal">
+    <p>アップデートがあります</p>
+    <button onclick="startUpdate()">アップデート</button>
+  </div>
 </div>
 
-<!-- メイン画面 -->
-<div id="app" class="card hidden">
-  <h1>SubWatch</h1>
-
-  <input id="name" placeholder="サブスク名">
-  <input id="price" type="number" placeholder="月額料金">
-  <button onclick="add()">追加</button>
-
-  <p id="warning" class="warning hidden">
-    ⚠ 追加しすぎてませんか？月額5万円を超えています
-  </p>
-
-  <ul id="list"></ul>
-  <h3 id="total">合計（月額）：¥0</h3>
-
-  <hr>
-
-  <h3>🔒 管理者解除</h3>
-  <input id="adminPass" type="password" placeholder="パスワード">
-  <button onclick="unlock()">解除</button>
+<!-- 読み込み -->
+<div id="loading">
+  <div class="modal">
+    <p>更新中...</p>
+  </div>
 </div>
 
 <script>
-let locked = false;
+const list = document.getElementById("list");
 
-window.onload = () => {
-  if (localStorage.getItem("agreed") === "true") {
-    showApp();
-  } else {
-    document.getElementById("terms").classList.remove("hidden");
-  }
-  render();
-};
+/* 追加 */
+function addItem() {
+  const name = document.getElementById("nameInput").value;
+  const price = document.getElementById("priceInput").value;
 
-function agree() {
-  if (!document.getElementById("human").checked) {
-    alert("人間確認してください");
-    return;
-  }
-  localStorage.setItem("agreed", "true");
-  showApp();
-}
-
-function showApp() {
-  document.getElementById("terms").classList.add("hidden");
-  document.getElementById("app").classList.remove("hidden");
-}
-
-function add() {
-  if (locked) return alert("現在ロック中です");
-
-  const name = name.value;
-  const price = Number(price.value);
   if (!name || !price) return;
 
-  const data = JSON.parse(localStorage.getItem("subs") || "[]");
-  data.push({ name, price });
-  localStorage.setItem("subs", JSON.stringify(data));
-  render();
+  const li = document.createElement("li");
+  li.innerHTML = `
+    <span>${name} / ¥${Number(price).toLocaleString()}</span>
+    <button onclick="removeItem(this)">削除</button>
+  `;
+
+  list.appendChild(li);
+
+  document.getElementById("nameInput").value = "";
+  document.getElementById("priceInput").value = "";
 }
 
-function render() {
-  const data = JSON.parse(localStorage.getItem("subs") || "[]");
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-
-  let total = 0;
-  data.forEach(s => {
-    total += s.price;
-    const li = document.createElement("li");
-    li.textContent = `${s.name}：¥${s.price}`;
-    list.appendChild(li);
-  });
-
-  document.getElementById("total").textContent =
-    `合計（月額）：¥${total}`;
-
-  document.getElementById("warning").classList.toggle(
-    "hidden",
-    total <= 50000
-  );
+/* 削除 */
+function removeItem(btn) {
+  btn.parentElement.remove();
 }
 
-function unlock() {
-  if (adminPass.value === "0823") {
-    locked = false;
-    alert("解除しました");
-  } else {
-    alert("パスワード違います");
+/* 初回アップデート通知 */
+window.onload = () => {
+  if (!localStorage.getItem("updated")) {
+    document.getElementById("updateModal").style.display = "flex";
   }
+};
+
+/* アップデート */
+function startUpdate() {
+  document.getElementById("updateModal").style.display = "none";
+  document.getElementById("loading").style.display = "flex";
+
+  setTimeout(() => {
+    document.getElementById("loading").style.display = "none";
+    localStorage.setItem("updated", "true");
+  }, 2000);
 }
 </script>
 
