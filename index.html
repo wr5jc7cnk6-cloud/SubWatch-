@@ -37,6 +37,12 @@ button:disabled {
   margin-top: 10px;
 }
 
+.warning {
+  color: #d35400;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
 .total {
   margin-top: 15px;
   font-weight: bold;
@@ -61,6 +67,7 @@ button:disabled {
   <button id="addBtn" onclick="addItem()">追加</button>
 
   <p id="notice" class="notice"></p>
+  <p id="warning" class="warning"></p>
 
   <ul id="list"></ul>
 
@@ -78,12 +85,13 @@ button:disabled {
 <script>
 const ADMIN_PASSWORD = "0823";
 const MAX_ADD = 5;
+const WARNING_LIMIT = 50000;
 
 let addCount = Number(localStorage.getItem("addCount")) || 0;
 let total = Number(localStorage.getItem("total")) || 0;
 
 document.getElementById("total").textContent = total;
-
+checkWarning();
 checkBan();
 
 /* 追加 */
@@ -116,8 +124,20 @@ function addItem() {
   localStorage.setItem("total", total);
   document.getElementById("total").textContent = total;
 
+  checkWarning();
+
   document.getElementById("name").value = "";
   document.getElementById("price").value = "";
+}
+
+/* 警告チェック */
+function checkWarning() {
+  const warn = document.getElementById("warning");
+  if (total > WARNING_LIMIT) {
+    warn.textContent = "⚠️ 追加しすぎてませんか？月額5万円を超えています";
+  } else {
+    warn.textContent = "";
+  }
 }
 
 /* 永久BAN */
@@ -159,6 +179,7 @@ function unlock() {
   total = 0;
 
   document.getElementById("total").textContent = "0";
+  document.getElementById("warning").textContent = "";
   document.getElementById("addBtn").disabled = false;
   document.getElementById("notice").textContent = "";
   document.getElementById("adminPass").value = "";
