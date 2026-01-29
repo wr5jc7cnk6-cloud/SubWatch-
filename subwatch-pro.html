@@ -3,59 +3,80 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>App Store Purchase</title>
+<title>SubWatch Pro 購入</title>
 
 <style>
 body{
   margin:0;
+  font-family:-apple-system, BlinkMacSystemFont, sans-serif;
   background:#000;
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;
+  color:#fff;
 }
 
-/* 背景ぼかし */
-.overlay{
-  position:fixed;
-  inset:0;
-  backdrop-filter:blur(20px);
-  background:rgba(0,0,0,.4);
+/* 背景 */
+.main{
+  height:100vh;
   display:flex;
   align-items:center;
   justify-content:center;
 }
 
-/* モーダル */
+button{
+  border:none;
+  cursor:pointer;
+}
+
+/* ==== オーバーレイ ==== */
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(20px);
+  display:flex;
+  justify-content:center;
+  align-items:flex-end;
+  padding-bottom:40px;
+  z-index:100;
+}
+
+/* ==== モーダル ==== */
 .modal{
   width:340px;
   background:#f2f2f7;
   border-radius:28px;
   padding:18px;
+  color:#000;
+  animation:slideUp .25s ease-out;
 }
 
-/* ヘッダー */
-.header{
+@keyframes slideUp{
+  from{
+    transform:translateY(40px);
+    opacity:0;
+  }
+  to{
+    transform:translateY(0);
+    opacity:1;
+  }
+}
+
+.modal-header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  font-weight:600;
+  margin-bottom:12px;
 }
 
 .close{
   font-size:22px;
-  cursor:pointer;
+  background:none;
 }
 
-/* カード */
-.card{
-  background:#fff;
-  border-radius:22px;
-  padding:16px;
-  margin-top:12px;
-}
-
+/* ==== アプリ情報 ==== */
 .app{
   display:flex;
-  align-items:center;
   gap:12px;
+  align-items:center;
 }
 
 .icon{
@@ -68,138 +89,116 @@ body{
   align-items:center;
   justify-content:center;
   font-size:28px;
-  font-weight:700;
-}
-
-.appname{
-  font-weight:600;
-  font-size:17px;
-}
-
-.sub{
-  color:#8e8e93;
-  font-size:13px;
-}
-
-.row{
-  display:flex;
-  justify-content:space-between;
-  margin-top:14px;
-  font-size:15px;
+  font-weight:bold;
 }
 
 .price{
-  font-weight:600;
+  margin:14px 0;
+  font-size:18px;
 }
 
+.sub{
+  color:#666;
+  font-size:14px;
+}
+
+/* ==== 購入ボタン ==== */
 .buy{
-  margin-top:20px;
-  background:#007aff;
-  color:#fff;
-  border:none;
   width:100%;
+  background:#0a84ff;
+  color:#fff;
   padding:14px;
-  font-size:17px;
   border-radius:14px;
+  font-size:17px;
+  font-weight:bold;
 }
 
-/* Face ID */
+/* ==== Face ID風 ==== */
 .faceid{
+  display:none;
   position:fixed;
   inset:0;
-  background:#000;
+  background:rgba(0,0,0,.8);
+  color:#fff;
+  z-index:200;
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  color:#fff;
 }
 
-.scan{
-  width:120px;
-  height:120px;
-  border-radius:50%;
-  border:4px solid #0a84ff;
-  animation:spin 2s linear infinite;
-}
-
-@keyframes spin{
-  from{transform:rotate(0)}
-  to{transform:rotate(360deg)}
-}
-
-.check{
-  display:none;
-  font-size:64px;
-  color:#30d158;
-  margin-bottom:10px;
+.face{
+  width:80px;
+  height:80px;
+  border-radius:18px;
+  border:3px solid #0a84ff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:40px;
+  margin-bottom:16px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="overlay" id="purchase">
+<div class="main">
+  <button onclick="openPurchase()" style="padding:14px 24px;font-size:16px;">
+    Proを購入
+  </button>
+</div>
+
+<!-- ==== 購入画面 ==== -->
+<div class="overlay" id="overlay" style="display:none;">
   <div class="modal">
-    <div class="header">
-      <span>App Store</span>
-      <span class="close" onclick="closeBuy()">✕</span>
+    <div class="modal-header">
+      <strong>App Store</strong>
+      <button class="close" onclick="closePurchase()">✕</button>
     </div>
 
-    <div class="card">
-      <div class="app">
-        <div class="icon">S</div>
-        <div>
-          <div class="appname">SubWatch Pro</div>
-          <div class="sub">アプリ内課金</div>
-        </div>
+    <div class="app">
+      <div class="icon">S</div>
+      <div>
+        <strong>SubWatch Pro</strong><br>
+        <span class="sub">アプリ内課金</span>
       </div>
-
-      <div class="row">
-        <div>
-          <div class="price">¥300</div>
-          <div class="sub">1回払い</div>
-        </div>
-      </div>
-
-      <div class="row sub">
-        <span>アカウント:</span>
-        <span>@icloud.com</span>
-      </div>
-
-      <button class="buy" onclick="faceID()">購入</button>
     </div>
+
+    <div class="price">
+      ¥300<br>
+      <span class="sub">1回払い</span>
+    </div>
+
+    <div class="sub">アカウント：@icloud.com</div>
+
+    <button class="buy" onclick="faceID()">購入</button>
   </div>
 </div>
 
-<!-- Face ID -->
-<div class="faceid" id="face" style="display:none">
-  <div class="check">✓</div>
-  <div class="scan"></div>
-  <p id="facetext">Face IDで購入</p>
+<!-- ==== Face ID風画面 ==== -->
+<div class="faceid" id="face">
+  <div class="face">😊</div>
+  <div>Face IDで購入</div>
 </div>
 
 <script>
-function closeBuy(){
-  document.getElementById("purchase").style.display="none";
+function openPurchase(){
+  document.getElementById("overlay").style.display="flex";
+}
+
+function closePurchase(){
+  document.getElementById("overlay").style.display="none";
 }
 
 function faceID(){
-  document.getElementById("purchase").style.display="none";
-  const f=document.getElementById("face");
-  f.style.display="flex";
-
+  document.getElementById("face").style.display="flex";
   setTimeout(()=>{
-    document.querySelector(".scan").style.display="none";
-    document.querySelector(".check").style.display="block";
-    document.getElementById("facetext").textContent="認証完了";
+    alert("購入完了（テスト）");
+    document.getElementById("face").style.display="none";
+    closePurchase();
+    localStorage.setItem("isPro","true");
   },2000);
-
-  setTimeout(()=>{
-    localStorage.setItem("subwatch_pro","true");
-    alert("SubWatch Pro が有効になりました");
-    location.reload();
-  },3000);
 }
 </script>
 
