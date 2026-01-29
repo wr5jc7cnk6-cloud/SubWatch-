@@ -12,7 +12,7 @@ body {
   margin: 0;
 }
 
-/* 共通モーダル */
+/* モーダル共通 */
 .modal {
   position: fixed;
   inset: 0;
@@ -29,18 +29,12 @@ body {
   max-width: 420px;
   padding: 20px;
   border-radius: 12px;
-  text-align: center;
 }
 
-button {
-  width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  margin-top: 15px;
-}
-
-button:disabled {
-  background: #ccc;
+/* メイン画面 */
+#app {
+  display: none;
+  padding: 20px;
 }
 </style>
 </head>
@@ -51,51 +45,54 @@ button:disabled {
 <div id="humanCheck" class="modal">
   <div class="box">
     <h2>🔐 確認</h2>
-    <p>あなたは人間ですか？</p>
-
     <label>
-      <input type="checkbox" id="humanBox">
-      私は人間です
+      <input type="checkbox" id="humanBox"> 私は人間です
     </label>
-
-    <button id="humanBtn" disabled onclick="confirmHuman()">次へ</button>
+    <button id="humanBtn" disabled>次へ</button>
   </div>
 </div>
 
 <!-- 利用規約 -->
 <div id="tos" class="modal" style="display:none">
-  <div class="box" style="text-align:left; max-height:80vh; overflow:auto;">
-    <h2>📜 SubWatch 利用規約</h2>
-    <p>（ここにさっき作った利用規約全文を入れてOK）</p>
+  <div class="box">
+    <h2>📜 利用規約</h2>
+    <p>本サービスは開発中です。</p>
     <button onclick="agreeTos()">同意して開始</button>
   </div>
 </div>
 
-<script>
-/* 人間チェック */
-const box = document.getElementById("humanBox");
-const btn = document.getElementById("humanBtn");
+<!-- ✅ メイン画面（これが重要） -->
+<div id="app">
+  <h1>SubWatch</h1>
+  <p>ようこそ！</p>
+</div>
 
-box.addEventListener("change", () => {
-  btn.disabled = !box.checked;
+<script>
+const humanBox = document.getElementById("humanBox");
+const humanBtn = document.getElementById("humanBtn");
+
+humanBox.addEventListener("change", () => {
+  humanBtn.disabled = !humanBox.checked;
 });
 
-function confirmHuman() {
+humanBtn.onclick = () => {
   localStorage.setItem("human", "yes");
   document.getElementById("humanCheck").style.display = "none";
   document.getElementById("tos").style.display = "flex";
-}
+};
 
-/* 規約同意 */
 function agreeTos() {
   localStorage.setItem("tosAccepted", "yes");
   document.getElementById("tos").style.display = "none";
+  document.getElementById("app").style.display = "block"; // ← これが超重要
 }
 
-/* 起動時チェック */
+/* 起動時 */
 if (localStorage.getItem("human") === "yes") {
   document.getElementById("humanCheck").style.display = "none";
-  if (localStorage.getItem("tosAccepted") !== "yes") {
+  if (localStorage.getItem("tosAccepted") === "yes") {
+    document.getElementById("app").style.display = "block";
+  } else {
     document.getElementById("tos").style.display = "flex";
   }
 }
