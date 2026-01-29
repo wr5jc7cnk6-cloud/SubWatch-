@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SubWatchLite</title>
+<title>SubWatch</title>
 <style>
 body {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
@@ -33,43 +33,87 @@ button {
   color: #d97706;
   font-weight: bold;
 }
+.hidden {
+  display: none;
+}
 </style>
 </head>
 
 <body>
 
-<div class="card">
-  <h1>SubWatchLite</h1>
+<!-- 利用規約画面 -->
+<div id="terms" class="card hidden">
+  <h1>SubWatch</h1>
+  <p>📜 利用規約に同意してください</p>
+  <label>
+    <input type="checkbox" id="human"> 私は人間です
+  </label>
+  <button onclick="agree()">同意して始める</button>
+</div>
+
+<!-- メイン画面 -->
+<div id="app" class="card hidden">
+  <h1>SubWatch</h1>
 
   <input id="name" placeholder="サブスク名">
   <input id="price" type="number" placeholder="月額料金">
   <button onclick="add()">追加</button>
 
-  <p id="warning" class="warning" style="display:none;">
-    ⚠ 月額5万円を超えています
+  <p id="warning" class="warning hidden">
+    ⚠ 追加しすぎてませんか？月額5万円を超えています
   </p>
 
   <ul id="list"></ul>
   <h3 id="total">合計（月額）：¥0</h3>
+
+  <hr>
+
+  <h3>🔒 管理者解除</h3>
+  <input id="adminPass" type="password" placeholder="パスワード">
+  <button onclick="unlock()">解除</button>
 </div>
 
 <script>
+let locked = false;
+
+window.onload = () => {
+  if (localStorage.getItem("agreed") === "true") {
+    showApp();
+  } else {
+    document.getElementById("terms").classList.remove("hidden");
+  }
+  render();
+};
+
+function agree() {
+  if (!document.getElementById("human").checked) {
+    alert("人間確認してください");
+    return;
+  }
+  localStorage.setItem("agreed", "true");
+  showApp();
+}
+
+function showApp() {
+  document.getElementById("terms").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+}
+
 function add() {
-  const name = document.getElementById("name").value;
-  const price = Number(document.getElementById("price").value);
+  if (locked) return alert("現在ロック中です");
+
+  const name = name.value;
+  const price = Number(price.value);
   if (!name || !price) return;
 
-  const data = JSON.parse(localStorage.getItem("liteSubs") || "[]");
+  const data = JSON.parse(localStorage.getItem("subs") || "[]");
   data.push({ name, price });
-  localStorage.setItem("liteSubs", JSON.stringify(data));
-
-  document.getElementById("name").value = "";
-  document.getElementById("price").value = "";
+  localStorage.setItem("subs", JSON.stringify(data));
   render();
 }
 
 function render() {
-  const data = JSON.parse(localStorage.getItem("liteSubs") || "[]");
+  const data = JSON.parse(localStorage.getItem("subs") || "[]");
   const list = document.getElementById("list");
   list.innerHTML = "";
 
@@ -84,11 +128,20 @@ function render() {
   document.getElementById("total").textContent =
     `合計（月額）：¥${total}`;
 
-  document.getElementById("warning").style.display =
-    total > 50000 ? "block" : "none";
+  document.getElementById("warning").classList.toggle(
+    "hidden",
+    total <= 50000
+  );
 }
 
-render();
+function unlock() {
+  if (adminPass.value === "0823") {
+    locked = false;
+    alert("解除しました");
+  } else {
+    alert("パスワード違います");
+  }
+}
 </script>
 
 </body>
