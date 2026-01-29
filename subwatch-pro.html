@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SubWatch Pro</title>
+
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f4f4f4;
+  margin: 0;
+  padding: 20px;
+}
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 420px;
+  margin: auto;
+}
+.hidden { display: none; }
+button, input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  font-size: 16px;
+}
+.warning { color: red; font-weight: bold; }
+</style>
+</head>
+
+<body>
+
+<!-- スプラッシュ -->
+<div id="splash" class="card">
+  <h1>SubWatch</h1>
+  <p>起動中...</p>
+</div>
+
+<!-- 人間認証 -->
+<div id="human" class="card hidden">
+  <h2>🔐 確認</h2>
+  <label><input type="checkbox" id="humanCheck"> 私は人間です</label>
+  <button onclick="humanOK()">次へ</button>
+</div>
+
+<!-- 利用規約 -->
+<div id="tos" class="card hidden">
+  <h2>📜 利用規約</h2>
+  <p>本サービスは自己責任でご利用ください。</p>
+  <button onclick="agree()">同意して開始</button>
+</div>
+
+<!-- BAN画面 -->
+<div id="ban" class="card hidden">
+  <h2>🚫 アクセス禁止</h2>
+  <p>作りすぎました</p>
+  <input id="adminPass" type="password" placeholder="解除パスワード">
+  <button onclick="unlock()">解除</button>
+</div>
+
+<!-- メイン -->
+<div id="app" class="card hidden">
+  <h1>SubWatch Pro</h1>
+
+  <input id="name" placeholder="サブスク名">
+  <input id="price" type="number" placeholder="月額料金">
+  <button onclick="add()">追加</button>
+
+  <p id="alert50k" class="warning hidden">
+    ⚠ 5万円を超えています
+  </p>
+
+  <ul id="list"></ul>
+  <h3 id="total">合計：¥0</h3>
+
+  <p style="font-size:12px;color:#666;">
+    ※ 開発中です。完成までお待ちください
+  </p>
+</div>
+
+<script>
+let banned = localStorage.getItem("banned") === "true";
+
+setTimeout(() => {
+  document.getElementById("splash").classList.add("hidden");
+
+  if (banned) {
+    document.getElementById("ban").classList.remove("hidden");
+    return;
+  }
+
+  if (!localStorage.getItem("human")) {
+    document.getElementById("human").classList.remove("hidden");
+  } else if (!localStorage.getItem("tos")) {
+    document.getElementById("tos").classList.remove("hidden");
+  } else {
+    showApp();
+  }
+}, 1200);
+
+function humanOK() {
+  if (!humanCheck.checked) return alert("チェックしてください");
+  localStorage.setItem("human", "yes");
+  human.classList.add("hidden");
+  tos.classList.remove("hidden");
+}
+
+function agree() {
+  localStorage.setItem("tos", "yes");
+  tos.classList.add("hidden");
+  showApp();
+}
+
+function showApp() {
+  app.classList.remove("hidden");
+  render();
+}
+
+function add() {
+  let count = Number(localStorage.getItem("count") || 0) + 1;
+  localStorage.setItem("count", count);
+
+  if (count > 20) {
+    localStorage.setItem("banned", "true");
+    location.reload();
+    return;
+  }
+
+  const n = name.value;
+  const p = Number(price.value);
+  if (!n || !p) return;
+
+  const data = JSON.parse(localStorage.getItem("subsPro") || "[]");
+  data.push({ n, p });
+  localStorage.setItem("subsPro", JSON.stringify(data));
+  render();
+}
+
+function render() {
+  const data = JSON.parse(localStorage.getItem("subsPro") || "[]");
+  list.innerHTML = "";
+  let total = 0;
+
+  data.forEach(s => {
+    total += s.p;
+    const li = document.createElement("li");
+    li.textContent = `${s.n}：¥${s.p}`;
+    list.appendChild(li);
+  });
+
+  totalEl = document.getElementById("total");
+  totalEl.textContent = `合計：¥${total}`;
+  alert50k.classList.toggle("hidden", total <= 50000);
+}
+
+function unlock() {
+  if (adminPass.value === "0823") {
+    localStorage.clear();
+    location.reload();
+  } else {
+    alert("パスワードが違います");
+  }
+}
+</script>
+
+</body>
+</html>
