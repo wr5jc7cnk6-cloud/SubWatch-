@@ -2,55 +2,160 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SubWatch Pro</title>
+
 <style>
-body { font-family: sans-serif; padding: 20px; }
-input, button { padding: 6px; margin-right: 5px; }
-.item { margin-top: 8px; }
-</style>
-</head>
-<body>
-
-<h1>SubWatch Pro</h1>
-<p>Pro版（無制限）</p>
-
-<input id="name" placeholder="名前">
-<input id="price" type="number" placeholder="金額">
-<button onclick="addItem()">追加</button>
-
-<div id="list"></div>
-
-<script>
-let items = JSON.parse(localStorage.getItem("pro_items") || "[]");
-render();
-
-function addItem() {
-  const name = nameInput.value;
-  const price = priceInput.value;
-  if (!name || !price) return alert("未入力があります");
-
-  items.push({ name, price });
-  localStorage.setItem("pro_items", JSON.stringify(items));
-  nameInput.value = priceInput.value = "";
-  render();
+body {
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;
+  background:#000;
+  color:#fff;
 }
 
-function render() {
-  list.innerHTML = "";
-  items.forEach((i, idx) => {
-    list.innerHTML += `
-      <div class="item">
-        ${i.name} / ¥${i.price}
-        <button onclick="del(${idx})">削除</button>
-      </div>`;
+.container { padding:24px; }
+
+.card {
+  background:#1c1c1e;
+  border-radius:18px;
+  padding:24px;
+  margin-top:60px;
+}
+
+.price { font-size:36px; font-weight:700; margin:20px 0; }
+
+.buy-btn {
+  width:100%;
+  padding:14px;
+  font-size:17px;
+  font-weight:600;
+  background:#007aff;
+  border:none;
+  border-radius:14px;
+  color:#fff;
+}
+
+.buy-btn:active { opacity:.7; }
+
+/* Face ID モーダル */
+.faceid {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.9);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  z-index:100;
+}
+
+.circle {
+  width:140px;
+  height:140px;
+  border-radius:50%;
+  border:4px solid #007aff;
+  animation: scan 2s linear infinite;
+}
+
+@keyframes scan {
+  from { transform:rotate(0deg); }
+  to { transform:rotate(360deg); }
+}
+
+.face-text {
+  margin-top:20px;
+  font-size:16px;
+  opacity:.9;
+}
+
+.check {
+  font-size:60px;
+  color:#0f0;
+  display:none;
+}
+</style>
+</head>
+
+<body>
+<div id="app" class="container"></div>
+
+<script>
+let isPro = localStorage.getItem("pro_paid")==="true";
+let items = JSON.parse(localStorage.getItem("pro_items")||"[]");
+
+function render(){
+  const app=document.getElementById("app");
+  app.innerHTML="";
+
+  if(!isPro){
+    app.innerHTML=`
+      <div class="card">
+        <h1>SubWatch Pro</h1>
+        <p>すべての制限を解除</p>
+
+        <div class="price">¥300</div>
+        <ul>
+          <li>✔ 登録数 無制限</li>
+          <li>✔ BAN・制限なし</li>
+        </ul>
+
+        <button class="buy-btn" onclick="startFaceID()">購入する</button>
+      </div>
+    `;
+    return;
+  }
+
+  app.innerHTML=`
+    <h1>🌟 SubWatch Pro</h1>
+    <input id="name" placeholder="サービス名">
+    <input id="price" placeholder="金額">
+    <button class="buy-btn" onclick="add()">追加</button>
+    <div id="list"></div>
+  `;
+
+  const list=document.getElementById("list");
+  items.forEach(i=>{
+    const d=document.createElement("div");
+    d.textContent=`${i.name} / ¥${i.price}`;
+    list.appendChild(d);
   });
 }
 
-function del(i) {
-  items.splice(i, 1);
-  localStorage.setItem("pro_items", JSON.stringify(items));
+/* Face ID開始 */
+function startFaceID(){
+  const modal=document.createElement("div");
+  modal.className="faceid";
+  modal.innerHTML=`
+    <div class="circle"></div>
+    <div class="check">✓</div>
+    <div class="face-text">Face IDで認証中…</div>
+  `;
+  document.body.appendChild(modal);
+
+  setTimeout(()=>{
+    modal.querySelector(".circle").style.display="none";
+    modal.querySelector(".check").style.display="block";
+    modal.querySelector(".face-text").textContent="認証完了";
+  },2000);
+
+  setTimeout(()=>{
+    localStorage.setItem("pro_paid","true");
+    isPro=true;
+    modal.remove();
+    render();
+  },3000);
+}
+
+function add(){
+  const n=document.getElementById("name").value;
+  const p=document.getElementById("price").value;
+  if(!n||!p) return;
+  items.push({name:n,price:p});
+  localStorage.setItem("pro_items",JSON.stringify(items));
   render();
 }
+
+render();
 </script>
 </body>
 </html>
