@@ -2,70 +2,81 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SubWatch Lite</title>
+
+<!-- アイコン -->
+<link rel="icon" href="icon-lite.png">
+<link rel="apple-touch-icon" href="icon-lite.png">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body {
-  margin:0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background:#f5f5f5;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #fff;
+  color: #000;
 }
 
-/* 共通 */
-.hidden { display:none; }
-.card {
-  background:#fff;
-  border-radius:14px;
-  padding:20px;
-  max-width:420px;
-  margin:40px auto;
-  box-shadow:0 8px 20px rgba(0,0,0,.1);
-}
-input, button {
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  font-size:16px;
-}
-button {
-  border:none;
-  border-radius:8px;
-  background:#e0e0e0;
-}
-button.active {
-  background:#2196F3;
-  color:#fff;
-}
-.warning { color:#e65100; font-weight:bold; }
-
-/* ===== 起動画面 ===== */
+/* 起動画面 */
 #splash {
-  position:fixed;
-  inset:0;
-  background:#fff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:999;
+  position: fixed;
+  inset: 0;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
 }
 
-#logo {
-  font-size:36px;
-  font-weight:700;
+#splash img {
+  width: 180px;
+  animation: fade 2s ease;
 }
 
-/* Lite 専用演出 */
-#lite {
-  color:#2196F3;
-  font-size:20px;
-  margin-left:8px;
-  animation: fadeIn 1s ease forwards;
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-@keyframes fadeIn {
-  from { opacity:0; }
-  to { opacity:1; }
+/* メイン */
+#app {
+  display: none;
+  padding: 20px;
+}
+
+h1 {
+  margin-top: 0;
+}
+
+input, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+button {
+  background: #4da3ff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+}
+
+.list {
+  margin-top: 20px;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.warning {
+  color: red;
+  font-weight: bold;
+  margin-top: 10px;
 }
 </style>
 </head>
@@ -74,77 +85,73 @@ button.active {
 
 <!-- 起動画面 -->
 <div id="splash">
-  <div id="logo">
-    SubWatch<span id="lite">Lite</span>
-  </div>
+  <img src="icon-lite.png" alt="SubWatch Lite">
 </div>
 
-<!-- メイン -->
-<div id="app" class="card hidden">
+<!-- アプリ本体 -->
+<div id="app">
   <h1>SubWatch Lite</h1>
 
-  <input id="subName" placeholder="サブスク名">
-  <input id="subPrice" type="number" placeholder="月額料金（円）">
+  <input id="name" placeholder="サービス名">
+  <input id="price" type="number" placeholder="月額料金（円）">
+  <button onclick="add()">追加</button>
 
-  <button class="active" onclick="addSub()">追加</button>
+  <div class="list" id="list"></div>
 
-  <p id="warning" class="warning"></p>
-
-  <ul id="list"></ul>
-  <p><strong>合計（月額）：¥<span id="total">0</span></strong></p>
-
-  <p style="font-size:12px;color:#666;">
-    ※ Lite版は簡易機能のみです
-  </p>
+  <h2>合計：<span id="total">0</span> 円</h2>
+  <div id="warning" class="warning"></div>
 </div>
 
 <script>
-let subs = JSON.parse(localStorage.getItem("liteSubs") || "[]");
+/* 起動画面制御 */
+setTimeout(() => {
+  document.getElementById("splash").style.display = "none";
+  document.getElementById("app").style.display = "block";
+}, 2000);
 
-/* 起動 */
-window.addEventListener("load", () => {
-  setTimeout(() => {
-    splash.style.display = "none";
-    app.classList.remove("hidden");
-    render();
-  }, 1200);
-});
+/* データ */
+let data = JSON.parse(localStorage.getItem("subwatch-lite") || "[]");
 
-/* 追加 */
-function addSub() {
-  const name = subName.value.trim();
-  const price = Number(subPrice.value);
-
-  if (!name || price <= 0) {
-    alert("入力してください");
-    return;
-  }
-
-  subs.push({ name, price });
-  localStorage.setItem("liteSubs", JSON.stringify(subs));
-
-  subName.value = "";
-  subPrice.value = "";
-  render();
+function save() {
+  localStorage.setItem("subwatch-lite", JSON.stringify(data));
 }
 
-/* 描画 */
 function render() {
+  const list = document.getElementById("list");
   list.innerHTML = "";
   let total = 0;
 
-  subs.forEach(s => {
-    const li = document.createElement("li");
-    li.textContent = `${s.name}：¥${s.price}`;
-    list.appendChild(li);
-    total += s.price;
+  data.forEach((d, i) => {
+    total += d.price;
+    list.innerHTML += `
+      <div class="item">
+        <span>${d.name}</span>
+        <span>${d.price}円</span>
+      </div>
+    `;
   });
 
-  totalEl.textContent = total.toLocaleString();
+  document.getElementById("total").textContent = total;
 
-  warning.textContent =
-    total > 50000 ? "⚠ 月額5万円を超えています" : "";
+  document.getElementById("warning").textContent =
+    total > 50000 ? "⚠ 追加しすぎではありませんか？" : "";
 }
+
+function add() {
+  const name = document.getElementById("name").value;
+  const price = Number(document.getElementById("price").value);
+
+  if (!name || !price) return;
+
+  data.push({ name, price });
+  save();
+  render();
+
+  document.getElementById("name").value = "";
+  document.getElementById("price").value = "";
+}
+
+render();
 </script>
 
 </body>
