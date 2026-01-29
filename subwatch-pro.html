@@ -3,184 +3,80 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SubWatch 購入</title>
+<title>SubWatch</title>
 
 <style>
 body{
   margin:0;
-  background:black;
-  color:white;
+  background:#000;
+  color:#fff;
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-  display:flex;
-  justify-content:center;
-  align-items:center;
+}
+
+.center{
   height:100vh;
-}
-
-.card{
-  background:#f5f5f7;
-  color:black;
-  width:320px;
-  border-radius:26px;
-  padding:20px;
-  box-sizing:border-box;
-}
-
-.button{
-  margin-top:18px;
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:14px;
-  background:#007aff;
-  color:white;
-  font-size:16px;
-}
-
-.sub{
-  color:gray;
-  font-size:13px;
-}
-
-#unlockBox{
-  display:none;
-  margin-top:14px;
-}
-
-input{
-  width:100%;
-  padding:10px;
-  font-size:16px;
-  border-radius:10px;
-  border:1px solid #ccc;
-  margin-top:8px;
-}
-
-/* Face ID */
-#face{
-  position:fixed;
-  inset:0;
-  background:black;
-  display:none;
+  display:flex;
   justify-content:center;
   align-items:center;
   flex-direction:column;
 }
 
-.face{
-  width:90px;
-  height:90px;
-  border:4px solid #0a84ff;
-  border-radius:22px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:38px;
-  animation:pulse 1.2s infinite;
-}
+.hidden{ display:none; }
 
-@keyframes pulse{
-  0%{opacity:.4}
-  50%{opacity:1}
-  100%{opacity:.4}
+.button{
+  margin-top:20px;
+  padding:14px 24px;
+  border-radius:14px;
+  border:none;
+  font-size:16px;
+  background:#007aff;
+  color:#fff;
 }
 </style>
 </head>
 
 <body>
 
-<div class="card" id="shop">
-  <strong>SubWatch Pro</strong><br>
-  <span class="sub">アプリ内課金</span>
-
-  <div style="margin-top:12px;font-size:18px;">¥300</div>
-
+<!-- 購入画面 -->
+<div id="purchase" class="center">
+  <h2>SubWatch Pro</h2>
+  <p>¥300（1回払い）</p>
   <button class="button" onclick="buy()">購入</button>
-
-  <div id="banNotice" class="sub" style="margin-top:10px;display:none;">
-    ⚠️ 現在このアカウントは制限されています
-  </div>
-
-  <button class="button" id="showUnlock" style="display:none;background:#d1d1d6;color:black;" onclick="toggleUnlock()">
-    解除はこちら
-  </button>
-
-  <!-- 🔓 解除番号（初期非表示） -->
-  <div id="unlockBox">
-    <input id="unlockInput" placeholder="解除番号を入力">
-    <button class="button" onclick="unlock()">解除</button>
-  </div>
 </div>
 
-<!-- Face ID -->
-<div id="face">
-  <div class="face">😊</div>
-  <div style="margin-top:12px">Face IDで購入</div>
+<!-- Pro有効画面 -->
+<div id="pro" class="center hidden">
+  <h1>✅ Pro版が有効です</h1>
+  <button class="button" onclick="goApp()">アプリへ</button>
 </div>
 
 <script>
 /* ===== 状態 ===== */
-const ADMIN_UNLOCK = "123456"; // 解除番号
-let isBan = localStorage.getItem("ban") === "true";
-let isPro = localStorage.getItem("pro") === "true";
+let isPro = localStorage.getItem("pro")==="true";
 
 /* ===== 初期表示 ===== */
 if(isPro){
-  document.body.innerHTML = "<h1>✅ Pro版が有効です</h1>";
+  showPro();
 }
 
-if(isBan){
-  document.getElementById("banNotice").style.display = "block";
-  document.getElementById("showUnlock").style.display = "block";
-}
-
-/* ===== 購入処理 ===== */
+/* ===== 購入 ===== */
 function buy(){
-  if(isBan){
-    alert("❌ BAN中のため購入できません");
-    return;
-  }
-
-  document.getElementById("face").style.display="flex";
-
+  // FaceID風演出（簡易）
   setTimeout(()=>{
-    playSound();
     localStorage.setItem("pro","true");
-    document.getElementById("face").style.display="none";
-    alert("🎉 購入完了");
-    location.reload();
-  },2000);
+    showPro();
+  },800);
 }
 
-/* ===== 解除欄表示 ===== */
-function toggleUnlock(){
-  document.getElementById("unlockBox").style.display="block";
+/* ===== 表示切替 ===== */
+function showPro(){
+  document.getElementById("purchase").classList.add("hidden");
+  document.getElementById("pro").classList.remove("hidden");
 }
 
-/* ===== 解除処理 ===== */
-function unlock(){
-  const v = document.getElementById("unlockInput").value;
-  if(v === ADMIN_UNLOCK){
-    localStorage.setItem("ban","false");
-    alert("✅ BAN解除されました");
-    location.reload();
-  }else{
-    alert("❌ 解除番号が違います");
-  }
-}
-
-/* ===== 購入音 ===== */
-function playSound(){
-  const ctx=new (window.AudioContext||window.webkitAudioContext)();
-  const o=ctx.createOscillator();
-  const g=ctx.createGain();
-  o.frequency.value=1000;
-  o.connect(g);
-  g.connect(ctx.destination);
-  g.gain.setValueAtTime(.4,ctx.currentTime);
-  g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.4);
-  o.start();
-  o.stop(ctx.currentTime+.4);
+/* ===== アプリ遷移 ===== */
+function goApp(){
+  alert("👉 ここから本アプリ画面へ");
 }
 </script>
 
