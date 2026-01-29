@@ -34,11 +34,14 @@ class _SubWatchState extends State<SubWatch> {
     if (isRunning) return;
     isRunning = true;
 
-    timer = Timer.periodic(const Duration(milliseconds: 100), (_) {
-      setState(() {
-        milliseconds += 100;
-      });
-    });
+    timer = Timer.periodic(
+      const Duration(milliseconds: 100),
+      (_) {
+        setState(() {
+          milliseconds += 100;
+        });
+      },
+    );
   }
 
   // ストップ
@@ -55,7 +58,7 @@ class _SubWatchState extends State<SubWatch> {
     });
   }
 
-  // 表示用フォーマット
+  // 時間表示フォーマット
   String formatTime(int ms) {
     int seconds = (ms / 1000).floor();
     int minutes = (seconds / 60).floor();
@@ -81,7 +84,6 @@ class _SubWatchState extends State<SubWatch> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // 時間表示
             Text(
               formatTime(milliseconds),
               style: const TextStyle(
@@ -90,10 +92,7 @@ class _SubWatchState extends State<SubWatch> {
                 fontWeight: FontWeight.w300,
               ),
             ),
-
             const SizedBox(height: 40),
-
-            // ボタン
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -102,28 +101,36 @@ class _SubWatchState extends State<SubWatch> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                   ),
                   child: const Text('START'),
                 ),
-
                 const SizedBox(width: 16),
-
                 ElevatedButton(
                   onPressed: stop,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey,
                     foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                   ),
                   child: const Text('STOP'),
                 ),
-
                 const SizedBox(width: 16),
-
                 ElevatedButton(
                   onPressed: reset,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
                     foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                   ),
                   child: const Text('RESET'),
                 ),
