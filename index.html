@@ -9,182 +9,95 @@
 body {
   font-family: system-ui, sans-serif;
   background: #f5f5f5;
-  padding: 20px;
+  margin: 0;
 }
 
-.card {
+/* 共通モーダル */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.box {
   background: white;
+  width: 90%;
+  max-width: 420px;
   padding: 20px;
   border-radius: 12px;
-  max-width: 400px;
-  margin: auto;
+  text-align: center;
 }
 
-input, button {
+button {
   width: 100%;
   padding: 12px;
   font-size: 16px;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
 button:disabled {
   background: #ccc;
-}
-
-.notice {
-  color: red;
-  font-weight: bold;
-  margin-top: 10px;
-}
-
-.warning {
-  color: #d35400;
-  font-weight: bold;
-  margin-top: 10px;
-}
-
-.total {
-  margin-top: 15px;
-  font-weight: bold;
-}
-
-.admin {
-  margin-top: 20px;
-  border-top: 1px dashed #ccc;
-  padding-top: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="card">
-  <h2>SubWatch</h2>
+<!-- 人間認証 -->
+<div id="humanCheck" class="modal">
+  <div class="box">
+    <h2>🔐 確認</h2>
+    <p>あなたは人間ですか？</p>
 
-  <input id="name" placeholder="サブスク名">
-  <input id="price" type="number" placeholder="月額料金">
+    <label>
+      <input type="checkbox" id="humanBox">
+      私は人間です
+    </label>
 
-  <button id="addBtn" onclick="addItem()">追加</button>
-
-  <p id="notice" class="notice"></p>
-  <p id="warning" class="warning"></p>
-
-  <ul id="list"></ul>
-
-  <div class="total">
-    合計（月額）：¥<span id="total">0</span>
+    <button id="humanBtn" disabled onclick="confirmHuman()">次へ</button>
   </div>
+</div>
 
-  <div class="admin">
-    <p>🔒 管理者解除</p>
-    <input id="adminPass" type="password" placeholder="パスワード">
-    <button onclick="unlock()">解除</button>
+<!-- 利用規約 -->
+<div id="tos" class="modal" style="display:none">
+  <div class="box" style="text-align:left; max-height:80vh; overflow:auto;">
+    <h2>📜 SubWatch 利用規約</h2>
+    <p>（ここにさっき作った利用規約全文を入れてOK）</p>
+    <button onclick="agreeTos()">同意して開始</button>
   </div>
 </div>
 
 <script>
-const ADMIN_PASSWORD = "0823";
-const MAX_ADD = 5;
-const WARNING_LIMIT = 50000;
+/* 人間チェック */
+const box = document.getElementById("humanBox");
+const btn = document.getElementById("humanBtn");
 
-let addCount = Number(localStorage.getItem("addCount")) || 0;
-let total = Number(localStorage.getItem("total")) || 0;
+box.addEventListener("change", () => {
+  btn.disabled = !box.checked;
+});
 
-document.getElementById("total").textContent = total;
-checkWarning();
-checkBan();
+function confirmHuman() {
+  localStorage.setItem("human", "yes");
+  document.getElementById("humanCheck").style.display = "none";
+  document.getElementById("tos").style.display = "flex";
+}
 
-/* 追加 */
-function addItem() {
-  if (isBanned()) return;
+/* 規約同意 */
+function agreeTos() {
+  localStorage.setItem("tosAccepted", "yes");
+  document.getElementById("tos").style.display = "none";
+}
 
-  addCount++;
-  localStorage.setItem("addCount", addCount);
-
-  if (addCount > MAX_ADD) {
-    permanentBan();
-    return;
+/* 起動時チェック */
+if (localStorage.getItem("human") === "yes") {
+  document.getElementById("humanCheck").style.display = "none";
+  if (localStorage.getItem("tosAccepted") !== "yes") {
+    document.getElementById("tos").style.display = "flex";
   }
-
-  const name = document.getElementById("name").value;
-  const price = Number(document.getElementById("price").value);
-
-  if (!name || !price) {
-    alert("入力してください");
-    addCount--;
-    localStorage.setItem("addCount", addCount);
-    return;
-  }
-
-  const li = document.createElement("li");
-  li.textContent = `${name}：¥${price}`;
-  document.getElementById("list").appendChild(li);
-
-  total += price;
-  localStorage.setItem("total", total);
-  document.getElementById("total").textContent = total;
-
-  checkWarning();
-
-  document.getElementById("name").value = "";
-  document.getElementById("price").value = "";
-}
-
-/* 警告チェック */
-function checkWarning() {
-  const warn = document.getElementById("warning");
-  if (total > WARNING_LIMIT) {
-    warn.textContent = "⚠️ 追加しすぎてませんか？月額5万円を超えています";
-  } else {
-    warn.textContent = "";
-  }
-}
-
-/* 永久BAN */
-function permanentBan() {
-  localStorage.setItem("ban", "PERMANENT");
-  block("作りすぎのため永久アクセス禁止されました");
-}
-
-/* 表示制御 */
-function block(msg) {
-  document.getElementById("addBtn").disabled = true;
-  document.getElementById("notice").textContent = msg;
-}
-
-/* BAN確認 */
-function checkBan() {
-  if (isBanned()) {
-    block("永久アクセス禁止されています");
-  }
-}
-
-function isBanned() {
-  return localStorage.getItem("ban") === "PERMANENT";
-}
-
-/* 管理者解除 */
-function unlock() {
-  const pass = document.getElementById("adminPass").value;
-  if (pass !== ADMIN_PASSWORD) {
-    alert("パスワードが違います");
-    return;
-  }
-
-  localStorage.removeItem("ban");
-  localStorage.removeItem("addCount");
-  localStorage.removeItem("total");
-
-  addCount = 0;
-  total = 0;
-
-  document.getElementById("total").textContent = "0";
-  document.getElementById("warning").textContent = "";
-  document.getElementById("addBtn").disabled = false;
-  document.getElementById("notice").textContent = "";
-  document.getElementById("adminPass").value = "";
-
-  alert("制限と合計をリセットしました");
 }
 </script>
 
