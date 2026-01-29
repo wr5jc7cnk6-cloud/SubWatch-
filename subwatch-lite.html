@@ -3,92 +3,148 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SubWatchLite</title>
+<title>SubWatch Lite</title>
+
 <style>
 body {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #f5f5f5;
-  margin: 0;
-  padding: 20px;
+  margin:0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background:#f5f5f5;
 }
+
+/* 共通 */
+.hidden { display:none; }
 .card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 20px;
-  max-width: 420px;
-  margin: auto;
+  background:#fff;
+  border-radius:14px;
+  padding:20px;
+  max-width:420px;
+  margin:40px auto;
+  box-shadow:0 8px 20px rgba(0,0,0,.1);
 }
 input, button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 10px;
-  font-size: 16px;
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  font-size:16px;
 }
 button {
-  border: none;
-  border-radius: 8px;
-  background: #e0e0e0;
+  border:none;
+  border-radius:8px;
+  background:#e0e0e0;
 }
-.warning {
-  color: #d97706;
-  font-weight: bold;
+button.active {
+  background:#2196F3;
+  color:#fff;
+}
+.warning { color:#e65100; font-weight:bold; }
+
+/* ===== 起動画面 ===== */
+#splash {
+  position:fixed;
+  inset:0;
+  background:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+
+#logo {
+  font-size:36px;
+  font-weight:700;
+}
+
+/* Lite 専用演出 */
+#lite {
+  color:#2196F3;
+  font-size:20px;
+  margin-left:8px;
+  animation: fadeIn 1s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity:0; }
+  to { opacity:1; }
 }
 </style>
 </head>
 
 <body>
 
-<div class="card">
-  <h1>SubWatchLite</h1>
+<!-- 起動画面 -->
+<div id="splash">
+  <div id="logo">
+    SubWatch<span id="lite">Lite</span>
+  </div>
+</div>
 
-  <input id="name" placeholder="サブスク名">
-  <input id="price" type="number" placeholder="月額料金">
-  <button onclick="add()">追加</button>
+<!-- メイン -->
+<div id="app" class="card hidden">
+  <h1>SubWatch Lite</h1>
 
-  <p id="warning" class="warning" style="display:none;">
-    ⚠ 月額5万円を超えています
-  </p>
+  <input id="subName" placeholder="サブスク名">
+  <input id="subPrice" type="number" placeholder="月額料金（円）">
+
+  <button class="active" onclick="addSub()">追加</button>
+
+  <p id="warning" class="warning"></p>
 
   <ul id="list"></ul>
-  <h3 id="total">合計（月額）：¥0</h3>
+  <p><strong>合計（月額）：¥<span id="total">0</span></strong></p>
+
+  <p style="font-size:12px;color:#666;">
+    ※ Lite版は簡易機能のみです
+  </p>
 </div>
 
 <script>
-function add() {
-  const name = document.getElementById("name").value;
-  const price = Number(document.getElementById("price").value);
-  if (!name || !price) return;
+let subs = JSON.parse(localStorage.getItem("liteSubs") || "[]");
 
-  const data = JSON.parse(localStorage.getItem("liteSubs") || "[]");
-  data.push({ name, price });
-  localStorage.setItem("liteSubs", JSON.stringify(data));
+/* 起動 */
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    splash.style.display = "none";
+    app.classList.remove("hidden");
+    render();
+  }, 1200);
+});
 
-  document.getElementById("name").value = "";
-  document.getElementById("price").value = "";
+/* 追加 */
+function addSub() {
+  const name = subName.value.trim();
+  const price = Number(subPrice.value);
+
+  if (!name || price <= 0) {
+    alert("入力してください");
+    return;
+  }
+
+  subs.push({ name, price });
+  localStorage.setItem("liteSubs", JSON.stringify(subs));
+
+  subName.value = "";
+  subPrice.value = "";
   render();
 }
 
+/* 描画 */
 function render() {
-  const data = JSON.parse(localStorage.getItem("liteSubs") || "[]");
-  const list = document.getElementById("list");
   list.innerHTML = "";
-
   let total = 0;
-  data.forEach(s => {
-    total += s.price;
+
+  subs.forEach(s => {
     const li = document.createElement("li");
     li.textContent = `${s.name}：¥${s.price}`;
     list.appendChild(li);
+    total += s.price;
   });
 
-  document.getElementById("total").textContent =
-    `合計（月額）：¥${total}`;
+  totalEl.textContent = total.toLocaleString();
 
-  document.getElementById("warning").style.display =
-    total > 50000 ? "block" : "none";
+  warning.textContent =
+    total > 50000 ? "⚠ 月額5万円を超えています" : "";
 }
-
-render();
 </script>
 
 </body>
