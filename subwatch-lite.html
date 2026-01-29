@@ -2,95 +2,122 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>SubWatch Lite</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SubWatch</title>
 
 <style>
 body {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  margin: 20px;
+  font-family: system-ui, sans-serif;
+  padding: 20px;
 }
 
-input, button {
-  width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  margin-top: 8px;
+h1 {
+  font-size: 28px;
+}
+
+button {
+  padding: 8px 14px;
+  margin-left: 5px;
 }
 
 ul {
-  margin-top: 20px;
   padding: 0;
 }
 
 li {
   list-style: none;
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
+  margin: 8px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.notice {
-  margin-top: 20px;
-  color: #666;
-  font-size: 14px;
+/* アップデート通知 */
+#updateModal, #loading {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+#loading span {
+  font-size: 18px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>SubWatch Lite</h1>
-<p>ようこそ！</p>
-<p>現在 Lite バージョンを使用しています。</p>
+<h1>SubWatch</h1>
 
-<input id="name" placeholder="サービス名">
-<input id="price" type="number" placeholder="月額料金（円）">
-
-<button id="addBtn">追加</button>
+<input id="itemInput" placeholder="サブスク名">
+<button onclick="addItem()">追加</button>
 
 <ul id="list"></ul>
 
-<p class="notice">
-※ Lite版では合計金額表示・警告機能は使用できません。<br>
-Pro版で全機能が解放されます。
-</p>
+<!-- アップデート通知 -->
+<div id="updateModal">
+  <div class="modal">
+    <p>アップデートがあります</p>
+    <button onclick="startUpdate()">アップデート</button>
+  </div>
+</div>
+
+<!-- 読み込み画面 -->
+<div id="loading">
+  <div class="modal">
+    <span>更新中...</span>
+  </div>
+</div>
 
 <script>
-const nameInput = document.getElementById("name");
-const priceInput = document.getElementById("price");
-const addBtn = document.getElementById("addBtn");
 const list = document.getElementById("list");
 
-let data = JSON.parse(localStorage.getItem("subwatch-lite")) || [];
+/* 追加 */
+function addItem() {
+  const input = document.getElementById("itemInput");
+  if (!input.value) return;
 
-function render() {
-  list.innerHTML = "";
-  data.forEach(item => {
-    const li = document.createElement("li");
-    li.textContent = `${item.name}：¥${item.price}`;
-    list.appendChild(li);
-  });
+  const li = document.createElement("li");
+  li.innerHTML = `
+    <span>${input.value}</span>
+    <button onclick="removeItem(this)">削除</button>
+  `;
+  list.appendChild(li);
+  input.value = "";
 }
 
-addBtn.onclick = () => {
-  const name = nameInput.value.trim();
-  const price = priceInput.value.trim();
+/* 削除 */
+function removeItem(btn) {
+  btn.parentElement.remove();
+}
 
-  if (!name || !price) {
-    alert("入力してください");
-    return;
+/* 初回アップデート通知 */
+window.onload = () => {
+  if (!localStorage.getItem("updated")) {
+    document.getElementById("updateModal").style.display = "flex";
   }
-
-  data.push({ name, price });
-  localStorage.setItem("subwatch-lite", JSON.stringify(data));
-
-  nameInput.value = "";
-  priceInput.value = "";
-
-  render();
 };
 
-render();
+/* アップデート処理 */
+function startUpdate() {
+  document.getElementById("updateModal").style.display = "none";
+  document.getElementById("loading").style.display = "flex";
+
+  setTimeout(() => {
+    document.getElementById("loading").style.display = "none";
+    localStorage.setItem("updated", "true");
+  }, 2000);
+}
 </script>
 
 </body>
