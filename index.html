@@ -4,136 +4,118 @@
 <meta charset="UTF-8">
 <title>SubWatch</title>
 <style>
-body {
-  font-family: system-ui, sans-serif;
-  padding: 20px;
-}
-input {
-  padding: 6px;
-  margin-bottom: 6px;
-}
-button {
-  padding: 6px 10px;
-}
+body { font-family: sans-serif; padding: 20px; }
+input, button { padding: 6px; margin-right: 5px; }
+.item { margin-top: 8px; }
 </style>
 </head>
 <body>
 
+<h1>SubWatch</h1>
+<p id="versionText"></p>
+
+<input id="name" placeholder="名前">
+<input id="price" type="number" placeholder="金額">
+<button onclick="addItem()">追加</button>
+
+<div id="list"></div>
+
 <script>
-/* =====================
-   設定
-===================== */
+/* ===== 設定 ===== */
 const VERSION = "normal"; // normal / lite / pro
-const UNBAN_CODE = "SUBWATCH-UNLOCK-2026";
+const LIMITS = { normal: 3, lite: 5, pro: Infinity };
 
-/* =====================
-   制限
-===================== */
-const limits = {
-  normal: 3,
-  lite: 5,
-  pro: Infinity
-};
-
-const limit = limits[VERSION];
-
-/* =====================
-   BAN管理
-===================== */
+/* ===== 状態 ===== */
+let items = JSON.parse(localStorage.getItem("items") || "[]");
 let banCount = Number(localStorage.getItem("banCount") || 0);
-const isBanned = localStorage.getItem("isBanned") === "true";
+let isBanned = localStorage.getItem("isBanned") === "true";
 
-/* =====================
-   BAN画面
-===================== */
-if (isBanned) {
-  document.body.innerHTML = `
-    <h2>🚫 BANされています</h2>
-    <p>解除コードを入力してください</p>
+/* ===== 初期表示 ===== */
+document.getElementById("versionText").innerText =
+  VERSION === "normal" ? "通常版（3件まで）" :
+  VERSION === "lite" ? "Lite版（5件まで）" :
+  "Pro版（無制限）";
 
-    <input id="unbanInput" placeholder="解除コード">
-    <br>
-    <button onclick="unban()">解除</button>
-
-    <p style="margin-top:20px;">
-      コードが分からない場合は<br>
-      <button onclick="location.href='https://line.me/R/ti/p/@254pdcli'">
-        公式LINEへ
-      </button>
-    </p>
-  `;
-  throw new Error("BANNED");
-}
-
-/* =====================
-   通常画面
-===================== */
-document.body.innerHTML = `
-  <h1>SubWatch</h1>
-  <p>${VERSION === "pro" ? "Pro版（無制限）" : VERSION === "lite" ? "Lite版（5件まで）" : "通常版（3件まで）"}</p>
-
-  <input id="name" placeholder="名前">
-  <input id="price" type="number" placeholder="金額">
-  <button onclick="addItem()">追加</button>
-
-  <ul id="list"></ul>
-`;
-
-const list = JSON.parse(localStorage.getItem("subs") || "[]");
+if (isBanned) showBan();
 render();
 
-/* =====================
-   追加処理
-===================== */
+/* ===== 追加 ===== */
 function addItem() {
-  if (list.length >= limit) {
-    banCount++;
-    localStorage.setItem("banCount", banCount);
-
-    alert(`登録上限です（警告 ${banCount}/5）`);
-
-    if (banCount >= 5) {
-      localStorage.setItem("isBanned", "true");
-      location.reload();
-    }
-    return;
-  }
+  if (isBanned) return;
 
   const name = document.getElementById("name").value;
   const price = document.getElementById("price").value;
-  if (!name || !price) return;
 
-  list.push({ name, price });
-  localStorage.setItem("subs", JSON.stringify(list));
-  render();
+  if (!name || !price) return alert("未入力があります");
+
+  if (items.length >= LIMITS[VERSION]) {
+    banCount++;
+    localStorage.setItem("banCount", banCount);
+
+    if (banCount >= 5) {
+      localStorage.setItem("isBanned", "true");
+      showBan();
+      return;
+    }
+
+    alert(`登録上限です（警告 ${banCount}/5）`);
+    return;
+  }
+
+  items.push({ name, price });
+  localStorage.setItem("items", JSON.stringify(items));
+
+  document.getElementById("name").value = "";
+  document.getElementById("price").value = "";
+
+  render(); // ← ★これが無いと表示されない
 }
 
-/* =====================
-   描画
-===================== */
+/* ===== 表示 ===== */
 function render() {
-  const ul = document.getElementById("list");
-  ul.innerHTML = "";
-  list.forEach(i => {
-    const li = document.createElement("li");
-    li.textContent = `${i.name} / ¥${i.price}`;
-    ul.appendChild(li);
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  items.forEach((item, i) => {
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `${item.name} / ¥${item.price}
+      <button onclick="removeItem(${i})">削除</button>`;
+    list.appendChild(div);
   });
 }
 
-/* =====================
-   BAN解除
-===================== */
-function unban() {
-  const input = document.getElementById("unbanInput").value;
-  if (input === UNBAN_CODE) {
-    localStorage.removeItem("isBanned");
-    localStorage.removeItem("banCount");
-    alert("解除しました！");
+/* ===== 削除 ===== */
+function removeItem(i) {
+  items.splice(i, 1);
+  localStorage.setItem("items", JSON.stringify(items));
+  render();
+}
+
+/* ===== BAN ===== */
+function showBan() {
+  document.body.innerHTML = `
+    <h2>🚫 BANされました</h2>
+    <p>解除コードを入力してください</p>
+    <input id="unlock">
+    <button onclick="unlock()">解除</button>
+    <br><br>
+    <button onclick="goLine()">公式LINE</button>
+  `;
+}
+
+function unlock() {
+  const code = document.getElementById("unlock").value;
+  if (code === "SUBWATCH-UNLOCK") {
+    localStorage.clear();
     location.reload();
   } else {
-    alert("解除コードが違います");
+    alert("コードが違います");
   }
+}
+
+function goLine() {
+  location.href = "https://line.me/R/ti/p/@254pdcli";
 }
 </script>
 
