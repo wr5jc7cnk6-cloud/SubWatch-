@@ -3,159 +3,205 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SubWatch Pro</title>
+<title>App Store Purchase</title>
 
 <style>
-body {
+body{
   margin:0;
+  background:#000;
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;
+}
+
+/* 背景ぼかし */
+.overlay{
+  position:fixed;
+  inset:0;
+  backdrop-filter:blur(20px);
+  background:rgba(0,0,0,.4);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* モーダル */
+.modal{
+  width:340px;
+  background:#f2f2f7;
+  border-radius:28px;
+  padding:18px;
+}
+
+/* ヘッダー */
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-weight:600;
+}
+
+.close{
+  font-size:22px;
+  cursor:pointer;
+}
+
+/* カード */
+.card{
+  background:#fff;
+  border-radius:22px;
+  padding:16px;
+  margin-top:12px;
+}
+
+.app{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.icon{
+  width:56px;
+  height:56px;
+  border-radius:14px;
   background:#000;
   color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+  font-weight:700;
 }
 
-.container { padding:24px; }
-
-.card {
-  background:#1c1c1e;
-  border-radius:18px;
-  padding:24px;
-  margin-top:60px;
+.appname{
+  font-weight:600;
+  font-size:17px;
 }
 
-.price { font-size:36px; font-weight:700; margin:20px 0; }
+.sub{
+  color:#8e8e93;
+  font-size:13px;
+}
 
-.buy-btn {
+.row{
+  display:flex;
+  justify-content:space-between;
+  margin-top:14px;
+  font-size:15px;
+}
+
+.price{
+  font-weight:600;
+}
+
+.buy{
+  margin-top:20px;
+  background:#007aff;
+  color:#fff;
+  border:none;
   width:100%;
   padding:14px;
   font-size:17px;
-  font-weight:600;
-  background:#007aff;
-  border:none;
   border-radius:14px;
-  color:#fff;
 }
 
-.buy-btn:active { opacity:.7; }
-
-/* Face ID モーダル */
-.faceid {
+/* Face ID */
+.faceid{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.9);
+  background:#000;
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  z-index:100;
+  color:#fff;
 }
 
-.circle {
-  width:140px;
-  height:140px;
+.scan{
+  width:120px;
+  height:120px;
   border-radius:50%;
-  border:4px solid #007aff;
-  animation: scan 2s linear infinite;
+  border:4px solid #0a84ff;
+  animation:spin 2s linear infinite;
 }
 
-@keyframes scan {
-  from { transform:rotate(0deg); }
-  to { transform:rotate(360deg); }
+@keyframes spin{
+  from{transform:rotate(0)}
+  to{transform:rotate(360deg)}
 }
 
-.face-text {
-  margin-top:20px;
-  font-size:16px;
-  opacity:.9;
-}
-
-.check {
-  font-size:60px;
-  color:#0f0;
+.check{
   display:none;
+  font-size:64px;
+  color:#30d158;
+  margin-bottom:10px;
 }
 </style>
 </head>
 
 <body>
-<div id="app" class="container"></div>
+
+<div class="overlay" id="purchase">
+  <div class="modal">
+    <div class="header">
+      <span>App Store</span>
+      <span class="close" onclick="closeBuy()">✕</span>
+    </div>
+
+    <div class="card">
+      <div class="app">
+        <div class="icon">S</div>
+        <div>
+          <div class="appname">SubWatch Pro</div>
+          <div class="sub">アプリ内課金</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <div class="price">¥300</div>
+          <div class="sub">1回払い</div>
+        </div>
+      </div>
+
+      <div class="row sub">
+        <span>アカウント:</span>
+        <span>@icloud.com</span>
+      </div>
+
+      <button class="buy" onclick="faceID()">購入</button>
+    </div>
+  </div>
+</div>
+
+<!-- Face ID -->
+<div class="faceid" id="face" style="display:none">
+  <div class="check">✓</div>
+  <div class="scan"></div>
+  <p id="facetext">Face IDで購入</p>
+</div>
 
 <script>
-let isPro = localStorage.getItem("pro_paid")==="true";
-let items = JSON.parse(localStorage.getItem("pro_items")||"[]");
-
-function render(){
-  const app=document.getElementById("app");
-  app.innerHTML="";
-
-  if(!isPro){
-    app.innerHTML=`
-      <div class="card">
-        <h1>SubWatch Pro</h1>
-        <p>すべての制限を解除</p>
-
-        <div class="price">¥300</div>
-        <ul>
-          <li>✔ 登録数 無制限</li>
-          <li>✔ BAN・制限なし</li>
-        </ul>
-
-        <button class="buy-btn" onclick="startFaceID()">購入する</button>
-      </div>
-    `;
-    return;
-  }
-
-  app.innerHTML=`
-    <h1>🌟 SubWatch Pro</h1>
-    <input id="name" placeholder="サービス名">
-    <input id="price" placeholder="金額">
-    <button class="buy-btn" onclick="add()">追加</button>
-    <div id="list"></div>
-  `;
-
-  const list=document.getElementById("list");
-  items.forEach(i=>{
-    const d=document.createElement("div");
-    d.textContent=`${i.name} / ¥${i.price}`;
-    list.appendChild(d);
-  });
+function closeBuy(){
+  document.getElementById("purchase").style.display="none";
 }
 
-/* Face ID開始 */
-function startFaceID(){
-  const modal=document.createElement("div");
-  modal.className="faceid";
-  modal.innerHTML=`
-    <div class="circle"></div>
-    <div class="check">✓</div>
-    <div class="face-text">Face IDで認証中…</div>
-  `;
-  document.body.appendChild(modal);
+function faceID(){
+  document.getElementById("purchase").style.display="none";
+  const f=document.getElementById("face");
+  f.style.display="flex";
 
   setTimeout(()=>{
-    modal.querySelector(".circle").style.display="none";
-    modal.querySelector(".check").style.display="block";
-    modal.querySelector(".face-text").textContent="認証完了";
+    document.querySelector(".scan").style.display="none";
+    document.querySelector(".check").style.display="block";
+    document.getElementById("facetext").textContent="認証完了";
   },2000);
 
   setTimeout(()=>{
-    localStorage.setItem("pro_paid","true");
-    isPro=true;
-    modal.remove();
-    render();
+    localStorage.setItem("subwatch_pro","true");
+    alert("SubWatch Pro が有効になりました");
+    location.reload();
   },3000);
 }
-
-function add(){
-  const n=document.getElementById("name").value;
-  const p=document.getElementById("price").value;
-  if(!n||!p) return;
-  items.push({name:n,price:p});
-  localStorage.setItem("pro_items",JSON.stringify(items));
-  render();
-}
-
-render();
 </script>
+
 </body>
 </html>
