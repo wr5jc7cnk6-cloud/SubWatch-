@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SubWatch2</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    }
+
+    /* 開発中モーダル */
+    #devOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+    }
+
+    #devBox {
+      background: #111;
+      border-radius: 16px;
+      padding: 28px 24px;
+      width: 85%;
+      max-width: 320px;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(0,0,0,0.6);
+    }
+
+    #devBox h1 {
+      font-size: 18px;
+      margin: 0 0 12px;
+    }
+
+    #devBox p {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-bottom: 20px;
+    }
+
+    #closeBtn {
+      background: #0a84ff;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 12px;
+      width: 100%;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 開発中表示（永久） -->
+  <div id="devOverlay">
+    <div id="devBox">
+      <h1>🚧 開発中です</h1>
+      <p>
+        現在 SubWatch2 を開発中です。<br>
+        公開までしばらくお待ちください。
+      </p>
+      <button id="closeBtn">閉じる</button>
+    </div>
+  </div>
+
+  <script>
+    const overlay = document.getElementById("devOverlay");
+    const closeBtn = document.getElementById("closeBtn");
+
+    // 閉じても即復活
+    closeBtn.addEventListener("click", () => {
+      overlay.style.display = "none";
+      setTimeout(() => {
+        overlay.style.display = "flex";
+      }, 50);
+    });
+
+    // 念のため：常に表示
+    setInterval(() => {
+      overlay.style.display = "flex";
+    }, 500);
+  </script>
+
+</body>
+</html>
