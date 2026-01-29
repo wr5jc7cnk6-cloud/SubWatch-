@@ -2,58 +2,138 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SubWatch</title>
-
 <style>
-body { font-family: system-ui, sans-serif; padding: 20px; }
-input { padding: 8px; width: 140px; margin-right: 5px; }
-button { padding: 8px 12px; }
-ul { padding: 0; margin-top: 20px; }
-li {
-  list-style: none;
-  margin: 8px 0;
-  display: flex;
-  justify-content: space-between;
+body {
+  font-family: system-ui, sans-serif;
+  padding: 20px;
 }
-.note { font-size: 14px; color: #666; }
+input {
+  padding: 6px;
+  margin-bottom: 6px;
+}
+button {
+  padding: 6px 10px;
+}
 </style>
 </head>
-
 <body>
 
-<h1>SubWatch（通常版）</h1>
-<p>最大3件まで登録できます。</p>
-
-<input id="nameInput" placeholder="サブスク名">
-<input id="priceInput" type="number" placeholder="月額(円)">
-<button onclick="addItem()">追加</button>
-
-<ul id="list"></ul>
-<p class="note">※ 通常版は3件まで</p>
-
 <script>
-const list = document.getElementById("list");
+/* =====================
+   設定
+===================== */
+const VERSION = "normal"; // normal / lite / pro
+const UNBAN_CODE = "SUBWATCH-UNLOCK-2026";
 
+/* =====================
+   制限
+===================== */
+const limits = {
+  normal: 3,
+  lite: 5,
+  pro: Infinity
+};
+
+const limit = limits[VERSION];
+
+/* =====================
+   BAN管理
+===================== */
+let banCount = Number(localStorage.getItem("banCount") || 0);
+const isBanned = localStorage.getItem("isBanned") === "true";
+
+/* =====================
+   BAN画面
+===================== */
+if (isBanned) {
+  document.body.innerHTML = `
+    <h2>🚫 BANされています</h2>
+    <p>解除コードを入力してください</p>
+
+    <input id="unbanInput" placeholder="解除コード">
+    <br>
+    <button onclick="unban()">解除</button>
+
+    <p style="margin-top:20px;">
+      コードが分からない場合は<br>
+      <button onclick="location.href='https://line.me/R/ti/p/@254pdcli'">
+        公式LINEへ
+      </button>
+    </p>
+  `;
+  throw new Error("BANNED");
+}
+
+/* =====================
+   通常画面
+===================== */
+document.body.innerHTML = `
+  <h1>SubWatch</h1>
+  <p>${VERSION === "pro" ? "Pro版（無制限）" : VERSION === "lite" ? "Lite版（5件まで）" : "通常版（3件まで）"}</p>
+
+  <input id="name" placeholder="名前">
+  <input id="price" type="number" placeholder="金額">
+  <button onclick="addItem()">追加</button>
+
+  <ul id="list"></ul>
+`;
+
+const list = JSON.parse(localStorage.getItem("subs") || "[]");
+render();
+
+/* =====================
+   追加処理
+===================== */
 function addItem() {
-  if (list.children.length >= 3) {
-    alert("通常版は3件までです違うバージョンをご利用ください");
+  if (list.length >= limit) {
+    banCount++;
+    localStorage.setItem("banCount", banCount);
+
+    alert(`登録上限です（警告 ${banCount}/5）`);
+
+    if (banCount >= 5) {
+      localStorage.setItem("isBanned", "true");
+      location.reload();
+    }
     return;
   }
 
-  const name = nameInput.value;
-  const price = priceInput.value;
+  const name = document.getElementById("name").value;
+  const price = document.getElementById("price").value;
   if (!name || !price) return;
 
-  const li = document.createElement("li");
-  li.innerHTML = `
-    <span>${name} / ¥${Number(price).toLocaleString()}</span>
-    <button onclick="this.parentElement.remove()">削除</button>
-  `;
-  list.appendChild(li);
+  list.push({ name, price });
+  localStorage.setItem("subs", JSON.stringify(list));
+  render();
+}
 
-  nameInput.value = "";
-  priceInput.value = "";
+/* =====================
+   描画
+===================== */
+function render() {
+  const ul = document.getElementById("list");
+  ul.innerHTML = "";
+  list.forEach(i => {
+    const li = document.createElement("li");
+    li.textContent = `${i.name} / ¥${i.price}`;
+    ul.appendChild(li);
+  });
+}
+
+/* =====================
+   BAN解除
+===================== */
+function unban() {
+  const input = document.getElementById("unbanInput").value;
+  if (input === UNBAN_CODE) {
+    localStorage.removeItem("isBanned");
+    localStorage.removeItem("banCount");
+    alert("解除しました！");
+    location.reload();
+  } else {
+    alert("解除コードが違います");
+  }
 }
 </script>
 
