@@ -15,13 +15,19 @@ h1 {
   font-size: 28px;
 }
 
+input {
+  padding: 8px;
+  margin-right: 5px;
+  width: 140px;
+}
+
 button {
-  padding: 8px 14px;
-  margin-left: 5px;
+  padding: 8px 12px;
 }
 
 ul {
   padding: 0;
+  margin-top: 20px;
 }
 
 li {
@@ -32,7 +38,7 @@ li {
   align-items: center;
 }
 
-/* アップデート通知 */
+/* アップデート */
 #updateModal, #loading {
   position: fixed;
   inset: 0;
@@ -48,10 +54,6 @@ li {
   border-radius: 10px;
   text-align: center;
 }
-
-#loading span {
-  font-size: 18px;
-}
 </style>
 </head>
 
@@ -59,7 +61,8 @@ li {
 
 <h1>SubWatch</h1>
 
-<input id="itemInput" placeholder="サブスク名">
+<input id="nameInput" placeholder="サブスク名">
+<input id="priceInput" type="number" placeholder="月額(円)">
 <button onclick="addItem()">追加</button>
 
 <ul id="list"></ul>
@@ -72,10 +75,10 @@ li {
   </div>
 </div>
 
-<!-- 読み込み画面 -->
+<!-- 読み込み -->
 <div id="loading">
   <div class="modal">
-    <span>更新中...</span>
+    <p>更新中...</p>
   </div>
 </div>
 
@@ -84,16 +87,21 @@ const list = document.getElementById("list");
 
 /* 追加 */
 function addItem() {
-  const input = document.getElementById("itemInput");
-  if (!input.value) return;
+  const name = document.getElementById("nameInput").value;
+  const price = document.getElementById("priceInput").value;
+
+  if (!name || !price) return;
 
   const li = document.createElement("li");
   li.innerHTML = `
-    <span>${input.value}</span>
+    <span>${name} / ¥${Number(price).toLocaleString()}</span>
     <button onclick="removeItem(this)">削除</button>
   `;
+
   list.appendChild(li);
-  input.value = "";
+
+  document.getElementById("nameInput").value = "";
+  document.getElementById("priceInput").value = "";
 }
 
 /* 削除 */
@@ -108,7 +116,7 @@ window.onload = () => {
   }
 };
 
-/* アップデート処理 */
+/* アップデート */
 function startUpdate() {
   document.getElementById("updateModal").style.display = "none";
   document.getElementById("loading").style.display = "flex";
