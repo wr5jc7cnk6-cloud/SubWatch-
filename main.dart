@@ -55,7 +55,7 @@ class _SubWatchState extends State<SubWatch> {
     });
   }
 
-  // 時間表示フォーマット
+  // 表示用フォーマット
   String formatTime(int ms) {
     int seconds = (ms / 1000).floor();
     int minutes = (seconds / 60).floor();
@@ -93,7 +93,7 @@ class _SubWatchState extends State<SubWatch> {
 
             const SizedBox(height: 40),
 
-            // ボタン群
+            // ボタン
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -102,8 +102,6 @@ class _SubWatchState extends State<SubWatch> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 12),
                   ),
                   child: const Text('START'),
                 ),
@@ -115,8 +113,6 @@ class _SubWatchState extends State<SubWatch> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey,
                     foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 12),
                   ),
                   child: const Text('STOP'),
                 ),
@@ -128,8 +124,6 @@ class _SubWatchState extends State<SubWatch> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 12),
                   ),
                   child: const Text('RESET'),
                 ),
