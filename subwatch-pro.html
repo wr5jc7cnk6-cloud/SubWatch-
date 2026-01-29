@@ -7,13 +7,12 @@
 
 <style>
 body {
+  margin:0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   background:#f5f5f5;
-  margin:0;
-  padding:0;
 }
 
-/* 共通 */
+/* ===== 共通 ===== */
 .hidden { display:none; }
 .card {
   background:#fff;
@@ -38,56 +37,45 @@ button.active {
   background:#4CAF50;
   color:#fff;
 }
-.warning {
-  color:#e65100;
-  font-weight:bold;
-}
-.lock {
-  color:red;
-  font-weight:bold;
-}
+.warning { color:#e65100; font-weight:bold; }
+.lock { color:red; font-weight:bold; }
 
 /* ===== 起動画面 ===== */
 #splash {
-  height:100vh;
+  position:fixed;
+  inset:0;
+  background:#fff;
   display:flex;
   align-items:center;
   justify-content:center;
-  background:#ffffff;
-  overflow:hidden;
+  z-index:999;
 }
 
 #logo {
   display:flex;
   align-items:center;
-  font-size:34px;
+  font-size:36px;
   font-weight:700;
 }
 
-#logo span {
-  opacity:0;
-}
-
-/* SubWatch（固定） */
+/* SubWatch は最初から表示 */
 #subwatch {
   opacity:1;
 }
 
-/* Pro（右から） */
+/* Pro は右から来る */
 #pro {
   margin-left:8px;
-  animation: slideIn 1s ease-out forwards;
-  animation-delay: 0.5s;
+  opacity:0;
+  transform: translateX(80px);
+  animation: slideIn 0.8s ease-out forwards;
+  animation-delay:0.4s;
 }
 
 @keyframes slideIn {
-  from {
-    transform: translateX(100px);
-    opacity:0;
-  }
   to {
-    transform: translateX(0);
     opacity:1;
+    transform: translateX(0);
   }
 }
 </style>
@@ -105,18 +93,15 @@ button.active {
 
 <!-- メインアプリ -->
 <div id="app" class="card hidden">
-
   <h1>SubWatch Pro</h1>
 
   <input id="subName" placeholder="サブスク名">
   <input id="subPrice" type="number" placeholder="月額料金（円）">
 
-  <button id="addBtn" onclick="addSub()" class="active">追加</button>
+  <button id="addBtn" class="active" onclick="addSub()">追加</button>
 
   <p id="warning" class="warning"></p>
-
   <ul id="list"></ul>
-
   <p><strong>合計（月額）：¥<span id="total">0</span></strong></p>
 
   <hr>
@@ -124,13 +109,11 @@ button.active {
   <h3>🔒 管理者解除</h3>
   <input id="adminPass" type="password" placeholder="解除パスワード">
   <button onclick="unlock()">解除</button>
-
   <p id="lockMsg" class="lock"></p>
 
   <p style="font-size:12px;color:#666;">
     ※ 開発中です。完成までお待ちください
   </p>
-
 </div>
 
 <script>
@@ -142,12 +125,14 @@ const ADMIN_PASSWORD = "0823";
 let subs = JSON.parse(localStorage.getItem("subs") || "[]");
 let locked = localStorage.getItem("locked") === "true";
 
-/* ===== 起動処理 ===== */
-setTimeout(() => {
-  document.getElementById("splash").classList.add("hidden");
-  document.getElementById("app").classList.remove("hidden");
-  render();
-}, 2000);
+/* ===== 起動処理（必ず進む） ===== */
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    document.getElementById("splash").style.display = "none";
+    document.getElementById("app").classList.remove("hidden");
+    render();
+  }, 1800);
+});
 
 /* ===== 追加 ===== */
 function addSub() {
@@ -169,7 +154,6 @@ function addSub() {
 
   subName.value = "";
   subPrice.value = "";
-
   render();
 }
 
@@ -185,8 +169,7 @@ function render() {
     total += s.price;
   });
 
-  document.getElementById("total").textContent = total.toLocaleString();
-
+  totalEl.textContent = total.toLocaleString();
   warning.textContent = "";
   lockMsg.textContent = "";
 
