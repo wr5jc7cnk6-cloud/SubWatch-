@@ -6,125 +6,54 @@
 <title>SubWatch</title>
 
 <style>
-body {
-  font-family: system-ui, sans-serif;
-  padding: 20px;
-}
-
-h1 {
-  font-size: 28px;
-}
-
-input {
-  padding: 8px;
-  margin-right: 5px;
-  width: 140px;
-}
-
-button {
-  padding: 8px 12px;
-}
-
-ul {
-  padding: 0;
-  margin-top: 20px;
-}
-
+body { font-family: system-ui, sans-serif; padding: 20px; }
+input { padding: 8px; width: 140px; margin-right: 5px; }
+button { padding: 8px 12px; }
+ul { padding: 0; margin-top: 20px; }
 li {
   list-style: none;
   margin: 8px 0;
   display: flex;
   justify-content: space-between;
-  align-items: center;
 }
-
-/* アップデート */
-#updateModal, #loading {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: none;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal {
-  background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  text-align: center;
-}
+.note { font-size: 14px; color: #666; }
 </style>
 </head>
 
 <body>
 
-<h1>SubWatch</h1>
+<h1>SubWatch（通常版）</h1>
+<p>最大3件まで登録できます。</p>
 
 <input id="nameInput" placeholder="サブスク名">
 <input id="priceInput" type="number" placeholder="月額(円)">
 <button onclick="addItem()">追加</button>
 
 <ul id="list"></ul>
-
-<!-- アップデート通知 -->
-<div id="updateModal">
-  <div class="modal">
-    <p>アップデートがあります</p>
-    <button onclick="startUpdate()">アップデート</button>
-  </div>
-</div>
-
-<!-- 読み込み -->
-<div id="loading">
-  <div class="modal">
-    <p>更新中...</p>
-  </div>
-</div>
+<p class="note">※ 通常版は3件まで</p>
 
 <script>
 const list = document.getElementById("list");
 
-/* 追加 */
 function addItem() {
-  const name = document.getElementById("nameInput").value;
-  const price = document.getElementById("priceInput").value;
+  if (list.children.length >= 3) {
+    alert("通常版は3件までです違うバージョンをご利用ください");
+    return;
+  }
 
+  const name = nameInput.value;
+  const price = priceInput.value;
   if (!name || !price) return;
 
   const li = document.createElement("li");
   li.innerHTML = `
     <span>${name} / ¥${Number(price).toLocaleString()}</span>
-    <button onclick="removeItem(this)">削除</button>
+    <button onclick="this.parentElement.remove()">削除</button>
   `;
-
   list.appendChild(li);
 
-  document.getElementById("nameInput").value = "";
-  document.getElementById("priceInput").value = "";
-}
-
-/* 削除 */
-function removeItem(btn) {
-  btn.parentElement.remove();
-}
-
-/* 初回アップデート通知 */
-window.onload = () => {
-  if (!localStorage.getItem("updated")) {
-    document.getElementById("updateModal").style.display = "flex";
-  }
-};
-
-/* アップデート */
-function startUpdate() {
-  document.getElementById("updateModal").style.display = "none";
-  document.getElementById("loading").style.display = "flex";
-
-  setTimeout(() => {
-    document.getElementById("loading").style.display = "none";
-    localStorage.setItem("updated", "true");
-  }, 2000);
+  nameInput.value = "";
+  priceInput.value = "";
 }
 </script>
 
