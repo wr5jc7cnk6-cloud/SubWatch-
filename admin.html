@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SubWatch 管理人</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f5f5f5;
+      color: #111;
+    }
+
+    .center {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 20px;
+    }
+
+    input {
+      width: 100%;
+      max-width: 260px;
+      padding: 12px;
+      font-size: 18px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+
+    button {
+      margin-top: 12px;
+      padding: 12px;
+      width: 100%;
+      max-width: 260px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      background: #007aff;
+      color: #fff;
+    }
+
+    .error {
+      margin-top: 12px;
+      color: #ff3b30;
+      font-size: 14px;
+    }
+
+    /* ===== 管理画面 ===== */
+    #admin {
+      display: none;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 10px 0;
+    }
+
+    .switch {
+      transform: scale(1.3);
+    }
+
+    .total {
+      font-size: 22px;
+      font-weight: bold;
+      text-align: right;
+    }
+
+    .btn-danger {
+      background: #ff3b30;
+      color: #fff;
+    }
+
+    .status {
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- 🔐 パスコード画面 -->
+<div id="lock" class="center">
+  <h2>管理人ページ</h2>
+  <p>パスコードを入力してください</p>
+  <input type="password" id="passcode" placeholder="****">
+  <button onclick="checkPass()">確認</button>
+  <div class="error" id="error"></div>
+</div>
+
+<!-- 🔓 管理画面 -->
+<div id="admin">
+  <div class="container">
+    <h1>SubWatch 管理人</h1>
+    <div class="status">管理人専用</div>
+
+    <!-- Pro封印 -->
+    <div class="card">
+      <h3>Pro 管理</h3>
+      <div class="row">
+        <span>Proを封印する</span>
+        <input type="checkbox" id="proLock" class="switch">
+      </div>
+      <div class="status" id="proStatus"></div>
+    </div>
+
+    <!-- 合計 -->
+    <div class="card">
+      <h3>合計金額</h3>
+      <div class="total" id="totalPrice">¥0</div>
+    </div>
+
+    <!-- サービス -->
+    <div class="card">
+      <h3>登録サービス</h3>
+      <div id="serviceList" class="status">なし</div>
+    </div>
+
+    <!-- 初期化 -->
+    <div class="card">
+      <button class="btn-danger" onclick="resetAll()">全データ初期化</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ===== パスコード ===== */
+  const PASSCODE = "0823";
+
+  function checkPass() {
+    const input = document.getElementById("passcode").value;
+    const error = document.getElementById("error");
+
+    if (input === PASSCODE) {
+      document.getElementById("lock").style.display = "none";
+      document.getElementById("admin").style.display = "block";
+      initAdmin();
+    } else {
+      error.textContent = "パスコードが違います";
+      document.getElementById("passcode").value = "";
+    }
+  }
+
+  /* ===== 管理機能 ===== */
+  function initAdmin() {
+    const SERVICE_KEY = "subwatch_services";
+    const PRO_LOCK_KEY = "subwatch_pro_locked";
+
+    const services = JSON.parse(localStorage.getItem(SERVICE_KEY)) || [];
+    const proLock = document.getElementById("proLock");
+    const proStatus = document.getElementById("proStatus");
+    const serviceList = document.getElementById("serviceList");
+    const totalPrice = document.getElementById("totalPrice");
+
+    proLock.checked = localStorage.getItem(PRO_LOCK_KEY) === "true";
+    updateProStatus();
+
+    proLock.addEventListener("change", () => {
+      localStorage.setItem(PRO_LOCK_KEY, proLock.checked);
+      updateProStatus();
+    });
+
+    function updateProStatus() {
+      proStatus.textContent = proLock.checked
+        ? "現在：Proは封印中"
+        : "現在：Proは利用可能";
+    }
+
+    if (services.length === 0) {
+      serviceList.textContent = "登録なし";
+    } else {
+      serviceList.innerHTML = services
+        .map(s => `・${s.name}：¥${s.price}`)
+        .join("<br>");
+    }
+
+    const total = services.reduce((sum, s) => sum + Number(s.price), 0);
+    totalPrice.textContent = `¥${total.toLocaleString()}`;
+  }
+
+  function resetAll() {
+    if (!confirm("本当に全削除しますか？")) return;
+    localStorage.clear();
+    location.reload();
+  }
+</script>
+
+</body>
+</html>
