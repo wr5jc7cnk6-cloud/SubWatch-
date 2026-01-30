@@ -1,56 +1,38 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SubWatch Pro</title>
-
-<style>
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #000;
-  color: #fff;
-}
-
-#notice {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #000;
-  text-align: center;
-}
-
-#app {
-  display: none;
-  padding: 30px;
-  text-align: center;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SubWatch Pro</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #000;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+    .box {
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 12px;
+    }
+    p {
+      color: #aaa;
+      font-size: 14px;
+    }
+  </style>
 </head>
-
 <body>
-
-<div id="notice">
-  <div>
-    <h2>👉 本アプリへ移動します</h2>
-    <p>しばらくお待ちください…</p>
+  <div class="box">
+    <h1>SubWatch Pro</h1>
+    <p>申し訳ございませんが<br>現在このサービスはご利用になれません。</p>
+    <p>※ 復旧までしばらくお待ちください</p>
   </div>
-</div>
-
-<div id="app">
-  <h1>SubWatch Pro</h1>
-  <p>アプリ画面に入りました</p>
-</div>
-
-<script>
-  setTimeout(() => {
-    document.getElementById("notice").style.display = "none";
-    document.getElementById("app").style.display = "block";
-  }, 800); // ← 0.8秒後に強制遷移
-</script>
-
 </body>
 </html>
