@@ -2,90 +2,160 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SubWatch2</title>
-
+  <title>SubWatch2 v1.13</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      background: #f5f5f7;
       margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    .version {
+      text-align: center;
+      color: #666;
+      margin-bottom: 14px;
+    }
+
+    /* アップデート通知 */
+    .update {
       background: #000;
       color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-    }
-
-    /* 開発中モーダル */
-    #devOverlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.85);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 99999;
-    }
-
-    #devBox {
-      background: #111;
-      border-radius: 16px;
-      padding: 28px 24px;
-      width: 85%;
-      max-width: 320px;
-      text-align: center;
-      box-shadow: 0 0 40px rgba(0,0,0,0.6);
-    }
-
-    #devBox h1 {
-      font-size: 18px;
-      margin: 0 0 12px;
-    }
-
-    #devBox p {
-      font-size: 14px;
-      opacity: 0.8;
-      margin-bottom: 20px;
-    }
-
-    #closeBtn {
-      background: #0a84ff;
-      color: #fff;
-      border: none;
-      border-radius: 12px;
       padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    input, button {
       width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      border-radius: 12px;
+      border: none;
       font-size: 16px;
+    }
+
+    input {
+      background: #fff;
+      border: 1px solid #ddd;
+    }
+
+    button {
+      background: #007aff;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    button.danger {
+      background: #ff3b30;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+    }
+
+    li {
+      background: #fff;
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .actions button {
+      width: auto;
+      margin-left: 6px;
+      padding: 6px 10px;
+      font-size: 14px;
+      border-radius: 8px;
     }
   </style>
 </head>
 <body>
 
-  <!-- 開発中表示（永久） -->
-  <div id="devOverlay">
-    <div id="devBox">
-      <h1>🚧 開発中です</h1>
-      <p>
-        現在 SubWatch2 を開発中です。<br>
-        公開までしばらくお待ちください。
-      </p>
-      <button id="closeBtn">閉じる</button>
-    </div>
+  <h1>SubWatch2</h1>
+  <div class="version">Version 1.13</div>
+
+  <!-- アップデート通知 -->
+  <div class="update">
+    🔔 アップデートがあります<br>
+    削除・編集・初期化機能を追加しました
   </div>
 
+  <!-- 入力 -->
+  <input id="textInput" placeholder="内容を入力" />
+  <button onclick="addItem()">追加</button>
+
+  <!-- リスト -->
+  <ul id="list"></ul>
+
+  <!-- 初期化 -->
+  <button class="danger" onclick="resetAll()">すべて初期化</button>
+
   <script>
-    const overlay = document.getElementById("devOverlay");
-    const closeBtn = document.getElementById("closeBtn");
+    const STORAGE_KEY = "subwatch2_items_v113";
+    let items = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
-    // 閉じても即復活
-    closeBtn.addEventListener("click", () => {
-      overlay.style.display = "none";
-      setTimeout(() => {
-        overlay.style.display = "flex";
-      }, 50);
-    });
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      render();
+    }
 
-    // 念のため：常に表示
-    setInterval(() => {
-      overlay.style.display = "flex";
-    }, 500);
+    function addItem() {
+      const input = document.getElementById("textInput");
+      if (!input.value.trim()) return;
+      items.push(input.value.trim());
+      input.value = "";
+      save();
+    }
+
+    function deleteItem(index) {
+      items.splice(index, 1);
+      save();
+    }
+
+    function editItem(index) {
+      const newText = prompt("編集内容を入力", items[index]);
+      if (newText === null) return;
+      items[index] = newText.trim();
+      save();
+    }
+
+    function resetAll() {
+      if (!confirm("本当にすべて初期化しますか？")) return;
+      items = [];
+      save();
+    }
+
+    function render() {
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+      items.forEach((item, index) => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <span>${item}</span>
+          <div class="actions">
+            <button onclick="editItem(${index})">編集</button>
+            <button class="danger" onclick="deleteItem(${index})">削除</button>
+          </div>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    render();
   </script>
 
 </body>
