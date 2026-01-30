@@ -3,81 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SubWatch</title>
+<title>SubWatch Pro</title>
 
 <style>
-body{
-  margin:0;
-  background:#000;
-  color:#fff;
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #000;
+  color: #fff;
 }
 
-.center{
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
+#notice {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  text-align: center;
 }
 
-.hidden{ display:none; }
-
-.button{
-  margin-top:20px;
-  padding:14px 24px;
-  border-radius:14px;
-  border:none;
-  font-size:16px;
-  background:#007aff;
-  color:#fff;
+#app {
+  display: none;
+  padding: 30px;
+  text-align: center;
 }
 </style>
 </head>
 
 <body>
 
-<!-- 購入画面 -->
-<div id="purchase" class="center">
-  <h2>SubWatch Pro</h2>
-  <p>¥300（1回払い）</p>
-  <button class="button" onclick="buy()">購入</button>
+<div id="notice">
+  <div>
+    <h2>👉 本アプリへ移動します</h2>
+    <p>しばらくお待ちください…</p>
+  </div>
 </div>
 
-<!-- Pro有効画面 -->
-<div id="pro" class="center hidden">
-  <h1>✅ Pro版が有効です</h1>
-  <button class="button" onclick="goApp()">アプリへ</button>
+<div id="app">
+  <h1>SubWatch Pro</h1>
+  <p>アプリ画面に入りました</p>
 </div>
 
 <script>
-/* ===== 状態 ===== */
-let isPro = localStorage.getItem("pro")==="true";
-
-/* ===== 初期表示 ===== */
-if(isPro){
-  showPro();
-}
-
-/* ===== 購入 ===== */
-function buy(){
-  // FaceID風演出（簡易）
-  setTimeout(()=>{
-    localStorage.setItem("pro","true");
-    showPro();
-  },800);
-}
-
-/* ===== 表示切替 ===== */
-function showPro(){
-  document.getElementById("purchase").classList.add("hidden");
-  document.getElementById("pro").classList.remove("hidden");
-}
-
-/* ===== アプリ遷移 ===== */
-function goApp(){
-  alert("👉 ここから本アプリ画面へ");
-}
+  setTimeout(() => {
+    document.getElementById("notice").style.display = "none";
+    document.getElementById("app").style.display = "block";
+  }, 800); // ← 0.8秒後に強制遷移
 </script>
 
 </body>
