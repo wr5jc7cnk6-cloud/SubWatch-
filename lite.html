@@ -7,7 +7,7 @@
 
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       background: #f5f5f7;
       margin: 0;
       padding: 20px;
@@ -15,8 +15,8 @@
     }
 
     h1 {
-      margin-top: 20px;
       font-size: 28px;
+      margin-top: 20px;
     }
 
     .version {
@@ -53,17 +53,22 @@
 
     .add {
       background: #007aff;
-      color: white;
+      color: #fff;
+    }
+
+    .total {
+      font-size: 20px;
+      margin: 15px 0;
+      font-weight: bold;
     }
 
     ul {
       list-style: none;
       padding: 0;
-      margin-top: 20px;
     }
 
     li {
-      background: white;
+      background: #fff;
       padding: 12px;
       border-radius: 10px;
       margin-bottom: 8px;
@@ -74,7 +79,7 @@
 
     .delete {
       background: #ff3b30;
-      color: white;
+      color: #fff;
       border: none;
       border-radius: 8px;
       padding: 6px 10px;
@@ -89,42 +94,58 @@
   <div class="version">Version 1.13</div>
 
   <div class="card">
-    🔔 Lite版（追加・削除のみ）
+    🔔 Lite版（値段・合計あり）
   </div>
 
   <!-- 入力欄 -->
-  <input id="content" type="text" placeholder="内容を入力">
+  <input id="name" type="text" placeholder="サービス名">
+  <input id="price" type="number" placeholder="値段（円）">
 
-  <!-- 追加ボタン（type=buttonが超重要） -->
   <button class="add" type="button" onclick="addItem()">追加</button>
 
-  <!-- リスト -->
+  <div class="total">
+    合計：¥<span id="total">0</span>
+  </div>
+
   <ul id="list"></ul>
 
   <script>
-    function addItem() {
-      const input = document.getElementById("content");
-      const text = input.value.trim();
+    let total = 0;
 
-      if (text === "") {
-        alert("内容を入力してください");
+    function addItem() {
+      const name = document.getElementById("name").value.trim();
+      const price = Number(document.getElementById("price").value);
+
+      if (name === "" || price <= 0) {
+        alert("名前と値段を入力してください");
         return;
       }
 
       const li = document.createElement("li");
-      li.textContent = text;
+      li.innerHTML = `${name} ¥${price.toLocaleString()}`;
 
       const deleteBtn = document.createElement("button");
       deleteBtn.textContent = "削除";
       deleteBtn.className = "delete";
       deleteBtn.onclick = function () {
+        total -= price;
+        updateTotal();
         li.remove();
       };
 
       li.appendChild(deleteBtn);
       document.getElementById("list").appendChild(li);
 
-      input.value = "";
+      total += price;
+      updateTotal();
+
+      document.getElementById("name").value = "";
+      document.getElementById("price").value = "";
+    }
+
+    function updateTotal() {
+      document.getElementById("total").textContent =
+        total.toLocaleString();
     }
   </script>
 
