@@ -1,63 +1,156 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SubWatch Pro</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SubWatch 管理人</title>
 
 <style>
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #000;
-  color: #fff;
+  background: #f2f2f7;
+  color: #000;
+}
+
+.hidden {
+  display: none;
+}
+
+.center {
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100vh;
+  text-align: center;
+  padding: 20px;
 }
 
-/* 利用不可画面 */
-#notice {
-  text-align: center;
+.box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
-/* Pro本体 */
-#app {
-  display: none;
-  text-align: center;
+h1 {
+  margin-top: 0;
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  margin-bottom: 16px;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #007aff;
+  color: #fff;
+}
+
+.btn-danger {
+  background: #ff3b30;
+  color: #fff;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.status {
+  font-weight: bold;
 }
 </style>
 </head>
 
 <body>
 
-<!-- 利用不可表示 -->
-<div id="notice">
-  <h1>SubWatch Pro</h1>
-  <p>申し訳ございませんが<br>現在このサービスはご利用になれません。</p>
-  <p style="font-size:12px; opacity:0.7;">※復旧までしばらくお待ちください</p>
+<!-- パスコード画面 -->
+<div id="lock" class="center">
+  <div class="box">
+    <h1>管理人専用</h1>
+    <p>パスコードを入力してください</p>
+    <input type="password" id="passcode" placeholder="パスコード" />
+    <button class="btn-primary" onclick="checkPass()">解除</button>
+  </div>
 </div>
 
-<!-- Pro本体 -->
-<div id="app">
-  <h1>SubWatch Pro</h1>
-  <p>Pro画面へようこそ</p>
+<!-- 管理画面 -->
+<div id="admin" class="hidden center">
+  <div style="width:100%; max-width:500px;">
+    <h1>SubWatch 管理人</h1>
+
+    <div class="card">
+      <h2>Pro 管理</h2>
+      <p class="status" id="proStatus"></p>
+      <button class="btn-primary" onclick="enablePro()">Pro を有効化</button>
+      <br><br>
+      <button class="btn-danger" onclick="disablePro()">Pro を無効化</button>
+    </div>
+
+    <div class="card">
+      <h2>全データ初期化</h2>
+      <button class="btn-danger" onclick="resetAll()">全データ初期化</button>
+    </div>
+  </div>
 </div>
 
 <script>
-/*
-  管理人スイッチ方式
-  管理人側で
-  localStorage.setItem("proEnabled","true");
-  にすると解放される
-*/
+const ADMIN_PASS = "0823";
 
-const proEnabled = localStorage.getItem("proEnabled");
+// 起動時は必ずロック
+document.getElementById("lock").classList.remove("hidden");
+document.getElementById("admin").classList.add("hidden");
 
-if (proEnabled === "true") {
-  document.getElementById("notice").style.display = "none";
-  document.getElementById("app").style.display = "block";
+function checkPass() {
+  const input = document.getElementById("passcode").value;
+  if (input === ADMIN_PASS) {
+    document.getElementById("lock").classList.add("hidden");
+    document.getElementById("admin").classList.remove("hidden");
+    updateStatus();
+  } else {
+    alert("パスコードが違います");
+  }
+}
+
+function updateStatus() {
+  const enabled = localStorage.getItem("proEnabled") !== "false";
+  document.getElementById("proStatus").textContent =
+    "現在：Proは " + (enabled ? "利用可能" : "利用不可");
+}
+
+function enablePro() {
+  localStorage.setItem("proEnabled", "true");
+  updateStatus();
+}
+
+function disablePro() {
+  localStorage.setItem("proEnabled", "false");
+  updateStatus();
+}
+
+function resetAll() {
+  if (confirm("本当に全データを初期化しますか？")) {
+    localStorage.clear();
+    updateStatus();
+    alert("初期化しました");
+  }
 }
 </script>
 
