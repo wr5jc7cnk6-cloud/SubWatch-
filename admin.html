@@ -8,9 +8,10 @@
 <style>
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
-  background: #0f0f0f;
+  font-family: system-ui, -apple-system;
+  background: #0b0b0b;
   color: white;
+  overflow: hidden; /* スクロール無効でもOK */
 }
 
 .center {
@@ -33,18 +34,18 @@ body {
 }
 
 input {
-  padding: 12px;
+  padding: 14px;
   font-size: 16px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: none;
-  width: 200px;
+  width: 220px;
   text-align: center;
 }
 
 button {
-  padding: 12px;
+  padding: 14px;
   font-size: 16px;
-  border-radius: 12px;
+  border-radius: 14px;
   border: none;
   width: 100%;
 }
@@ -60,12 +61,12 @@ button {
 }
 
 button:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
 }
 
 .notice {
   color: #ff9f0a;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 </style>
 </head>
@@ -89,7 +90,7 @@ button:disabled {
     <h1>SubWatch 管理人</h1>
 
     <p id="viewOnly" class="notice" style="display:none;">
-      ※閲覧モードです（変更不可）
+      ※閲覧モード（変更不可）
     </p>
 
     <div class="card">
@@ -105,11 +106,12 @@ button:disabled {
 
 <script>
 let unlocked = false;
-let startY = 0;
+let startY = null;
+let swipeTriggered = false;
 
 function updateStatus() {
   const enabled = localStorage.getItem("proEnabled") !== "false";
-  document.getElementById("statusText").textContent =
+  statusText.textContent =
     enabled ? "現在：Pro 利用可能" : "現在：Pro 利用不可";
 }
 
@@ -123,10 +125,9 @@ function unlockButtons() {
   disableBtn.disabled = false;
 }
 
-// 🔓 パスコード判定
+// 🔓 パスコード解除
 function checkPass() {
-  const pass = document.getElementById("passcode").value;
-  if (pass === "0823") {
+  if (passcode.value === "0823") {
     unlocked = true;
     lock.classList.add("hidden");
     admin.classList.remove("hidden");
@@ -138,21 +139,26 @@ function checkPass() {
   }
 }
 
-// 👇 下スワイプで閲覧モード
-document.addEventListener("touchstart", e => {
+// 👇 iOS対応・確実に動くスワイプ検知
+document.body.addEventListener("touchstart", e => {
   startY = e.touches[0].clientY;
-});
+  swipeTriggered = false;
+}, { passive: true });
 
-document.addEventListener("touchend", e => {
-  const endY = e.changedTouches[0].clientY;
-  if (endY - startY > 80 && !unlocked) {
+document.body.addEventListener("touchmove", e => {
+  if (unlocked || swipeTriggered || startY === null) return;
+
+  const currentY = e.touches[0].clientY;
+  if (currentY - startY > 90) {
+    swipeTriggered = true;
+
     lock.classList.add("hidden");
     admin.classList.remove("hidden");
     viewOnly.style.display = "block";
     lockButtons();
     updateStatus();
   }
-});
+}, { passive: true });
 
 // 🟢 Pro ON
 enableBtn.onclick = () => {
