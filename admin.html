@@ -1,157 +1,172 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SubWatch 管理人</title>
 
 <style>
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #f2f2f7;
-  color: #000;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  background: #0f0f0f;
+  color: white;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
 }
 
 .hidden {
   display: none;
 }
 
-.center {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
+.card {
+  background: #1c1c1e;
   padding: 20px;
-}
-
-.box {
-  background: #fff;
   border-radius: 16px;
-  padding: 24px;
-  width: 100%;
-  max-width: 420px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
-
-h1 {
-  margin-top: 0;
+  margin-top: 20px;
 }
 
 input {
-  width: 100%;
-  padding: 14px;
+  padding: 12px;
   font-size: 16px;
-  border-radius: 12px;
-  border: 1px solid #ccc;
-  margin-bottom: 16px;
+  border-radius: 10px;
+  border: none;
+  width: 200px;
+  text-align: center;
 }
 
 button {
-  width: 100%;
-  padding: 14px;
+  padding: 12px;
   font-size: 16px;
-  border-radius: 14px;
+  border-radius: 12px;
   border: none;
-  cursor: pointer;
+  width: 100%;
 }
 
 .btn-primary {
-  background: #007aff;
-  color: #fff;
+  background: #0a84ff;
+  color: white;
 }
 
 .btn-danger {
-  background: #ff3b30;
-  color: #fff;
+  background: #ff453a;
+  color: white;
 }
 
-.card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
+button:disabled {
+  opacity: 0.4;
 }
-.status {
-  font-weight: bold;
+
+.notice {
+  color: #ff9f0a;
+  margin-top: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- パスコード画面 -->
+<!-- 🔐 ロック画面 -->
 <div id="lock" class="center">
-  <div class="box">
-    <h1>管理人専用</h1>
-    <p>パスコードを入力してください</p>
-    <input type="password" id="passcode" placeholder="パスコード" />
+  <div>
+    <h2>パスコードを入力してください</h2>
+    <input type="password" id="passcode" placeholder="****">
+    <br><br>
     <button class="btn-primary" onclick="checkPass()">解除</button>
+    <p class="notice">※ 下にスワイプで閲覧のみ可能</p>
   </div>
 </div>
 
-<!-- 管理画面 -->
+<!-- 🛠 管理人画面 -->
 <div id="admin" class="hidden center">
-  <div style="width:100%; max-width:500px;">
+  <div style="width:90%;max-width:420px;">
     <h1>SubWatch 管理人</h1>
 
-    <div class="card">
-      <h2>Pro 管理</h2>
-      <p class="status" id="proStatus"></p>
-      <button class="btn-primary" onclick="enablePro()">Pro を有効化</button>
-      <br><br>
-      <button class="btn-danger" onclick="disablePro()">Pro を無効化</button>
-    </div>
+    <p id="viewOnly" class="notice" style="display:none;">
+      ※閲覧モードです（変更不可）
+    </p>
 
     <div class="card">
-      <h2>全データ初期化</h2>
-      <button class="btn-danger" onclick="resetAll()">全データ初期化</button>
+      <h3>Pro 状態</h3>
+      <p id="statusText"></p>
+
+      <button id="enableBtn" class="btn-primary">Pro を有効化</button>
+      <br><br>
+      <button id="disableBtn" class="btn-danger">Pro を無効化</button>
     </div>
   </div>
 </div>
 
 <script>
-const ADMIN_PASS = "0823";
+let unlocked = false;
+let startY = 0;
 
-// 起動時は必ずロック
-document.getElementById("lock").classList.remove("hidden");
-document.getElementById("admin").classList.add("hidden");
+function updateStatus() {
+  const enabled = localStorage.getItem("proEnabled") !== "false";
+  document.getElementById("statusText").textContent =
+    enabled ? "現在：Pro 利用可能" : "現在：Pro 利用不可";
+}
 
+function lockButtons() {
+  enableBtn.disabled = true;
+  disableBtn.disabled = true;
+}
+
+function unlockButtons() {
+  enableBtn.disabled = false;
+  disableBtn.disabled = false;
+}
+
+// 🔓 パスコード判定
 function checkPass() {
-  const input = document.getElementById("passcode").value;
-  if (input === ADMIN_PASS) {
-    document.getElementById("lock").classList.add("hidden");
-    document.getElementById("admin").classList.remove("hidden");
+  const pass = document.getElementById("passcode").value;
+  if (pass === "0823") {
+    unlocked = true;
+    lock.classList.add("hidden");
+    admin.classList.remove("hidden");
+    viewOnly.style.display = "none";
+    unlockButtons();
     updateStatus();
   } else {
     alert("パスコードが違います");
   }
 }
 
-function updateStatus() {
-  const enabled = localStorage.getItem("proEnabled") !== "false";
-  document.getElementById("proStatus").textContent =
-    "現在：Proは " + (enabled ? "利用可能" : "利用不可");
-}
+// 👇 下スワイプで閲覧モード
+document.addEventListener("touchstart", e => {
+  startY = e.touches[0].clientY;
+});
 
-function enablePro() {
+document.addEventListener("touchend", e => {
+  const endY = e.changedTouches[0].clientY;
+  if (endY - startY > 80 && !unlocked) {
+    lock.classList.add("hidden");
+    admin.classList.remove("hidden");
+    viewOnly.style.display = "block";
+    lockButtons();
+    updateStatus();
+  }
+});
+
+// 🟢 Pro ON
+enableBtn.onclick = () => {
+  if (!unlocked) return;
   localStorage.setItem("proEnabled", "true");
   updateStatus();
-}
+};
 
-function disablePro() {
+// 🔴 Pro OFF
+disableBtn.onclick = () => {
+  if (!unlocked) return;
   localStorage.setItem("proEnabled", "false");
   updateStatus();
-}
-
-function resetAll() {
-  if (confirm("本当に全データを初期化しますか？")) {
-    localStorage.clear();
-    updateStatus();
-    alert("初期化しました");
-  }
-}
+};
 </script>
 
 </body>
