@@ -1,29 +1,71 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>SubWatch Pro</title>
-
-<script>
-setTimeout(() => {
-  window.location.href = "main.html"; // ← 次の画面
-}, 1500);
-</script>
+<title>移行のお知らせ</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body {
-  background: white;
+  margin: 0;
+  background: black;
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  font-size: 32px;
+}
+
+.box {
+  text-align: center;
+  background: #111;
+  padding: 25px;
+  border-radius: 14px;
+  width: 85%;
+}
+
+button {
+  margin-top: 15px;
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+.yes {
+  background: #00c853;
+  color: white;
+}
+
+.no {
+  background: #333;
+  color: white;
 }
 </style>
-
 </head>
 
 <body>
-Pro 起動成功
+
+<div class="box">
+  <h3>サイトが移行されました</h3>
+  <p>新しいProへ移動しますか？</p>
+
+  <button class="yes" onclick="go()">はい</button>
+  <button class="no" onclick="stay()">いいえ</button>
+</div>
+
+<script>
+function go() {
+  window.location.href = "pro.html"; 
+  // ←ここを新ProのURLに変えてOK
+}
+
+function stay() {
+  alert("このページに残ります");
+}
+</script>
+
 </body>
 </html>
