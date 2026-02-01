@@ -1,144 +1,91 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>SubWatch Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-void main() {
-  runApp(const MyApp());
+<style>
+body {
+  margin: 0;
+  background: black;
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: SubWatch(),
-    );
-  }
+header {
+  text-align: center;
+  padding: 20px;
+  font-size: 22px;
+  font-weight: bold;
+  border-bottom: 1px solid #222;
 }
 
-class SubWatch extends StatefulWidget {
-  const SubWatch({super.key});
-
-  @override
-  State<SubWatch> createState() => _SubWatchState();
+.container {
+  padding: 20px;
 }
 
-class _SubWatchState extends State<SubWatch> {
-  Timer? timer;
-  int milliseconds = 0;
-  bool isRunning = false;
+.card {
+  background: #111;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
 
-  // スタート
-  void start() {
-    if (isRunning) return;
-    isRunning = true;
+.button {
+  width: 100%;
+  padding: 15px;
+  background: #00c853;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  margin-top: 10px;
+}
 
-    timer = Timer.periodic(
-      const Duration(milliseconds: 100),
-      (_) {
-        setState(() {
-          milliseconds += 100;
-        });
-      },
-    );
-  }
+.status {
+  font-size: 14px;
+  color: #aaa;
+  margin-top: 5px;
+}
+</style>
+</head>
 
-  // ストップ
-  void stop() {
-    timer?.cancel();
-    isRunning = false;
-  }
+<body>
 
-  // リセット
-  void reset() {
-    stop();
-    setState(() {
-      milliseconds = 0;
-    });
-  }
+<header>SubWatch Pro</header>
 
-  // 時間表示フォーマット
-  String formatTime(int ms) {
-    int seconds = (ms / 1000).floor();
-    int minutes = (seconds / 60).floor();
-    seconds %= 60;
-    int deci = (ms % 1000) ~/ 100;
+<div class="container">
 
-    return '${minutes.toString().padLeft(2, '0')}:'
-           '${seconds.toString().padLeft(2, '0')}.'
-           '$deci';
-  }
+<div class="card">
+  <h3>監視状態</h3>
+  <div id="statusText">停止中</div>
+  <div class="status">リアルタイムステータス</div>
+  <button class="button" onclick="toggleWatch()">開始 / 停止</button>
+</div>
 
-  @override
-  void dispose() {
-    timer?.cancel();
-    super.dispose();
-  }
+<div class="card">
+  <h3>ログ</h3>
+  <div id="log">待機中...</div>
+</div>
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              formatTime(milliseconds),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 48,
-                fontWeight: FontWeight.w300,
-              ),
-            ),
-            const SizedBox(height: 40),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: start,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: const Text('START'),
-                ),
-                const SizedBox(width: 16),
-                ElevatedButton(
-                  onPressed: stop,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: const Text('STOP'),
-                ),
-                const SizedBox(width: 16),
-                ElevatedButton(
-                  onPressed: reset,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: const Text('RESET'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
+</div>
+
+<script>
+let running = false;
+
+function toggleWatch() {
+  running = !running;
+
+  if (running) {
+    document.getElementById("statusText").innerText = "監視中";
+    document.getElementById("log").innerText = "Proシステム起動";
+  } else {
+    document.getElementById("statusText").innerText = "停止中";
+    document.getElementById("log").innerText = "停止しました";
   }
 }
+</script>
+
+</body>
+</html>
