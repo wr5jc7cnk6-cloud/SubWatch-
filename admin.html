@@ -5,13 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SubWatch 管理人</title>
 
+<!-- キャッシュ防止 -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
 <style>
 body {
   margin: 0;
-  font-family: system-ui, -apple-system;
+  font-family: system-ui;
   background: #0b0b0b;
   color: white;
-  overflow: hidden; /* スクロール無効でもOK */
 }
 
 .center {
@@ -22,9 +26,7 @@ body {
   text-align: center;
 }
 
-.hidden {
-  display: none;
-}
+.hidden { display: none; }
 
 .card {
   background: #1c1c1e;
@@ -50,19 +52,10 @@ button {
   width: 100%;
 }
 
-.btn-primary {
-  background: #0a84ff;
-  color: white;
-}
+.btn-primary { background: #0a84ff; color: white; }
+.btn-danger { background: #ff453a; color: white; }
 
-.btn-danger {
-  background: #ff453a;
-  color: white;
-}
-
-button:disabled {
-  opacity: 0.35;
-}
+button:disabled { opacity: 0.4; }
 
 .notice {
   color: #ff9f0a;
@@ -73,33 +66,33 @@ button:disabled {
 
 <body>
 
-<!-- 🔐 ロック画面 -->
+<!-- 🔐 ロック -->
 <div id="lock" class="center">
   <div>
     <h2>パスコードを入力してください</h2>
     <input type="password" id="passcode" placeholder="****">
     <br><br>
-    <button class="btn-primary" onclick="checkPass()">解除</button>
+    <button class="btn-primary" onclick="unlock()">解除</button>
     <p class="notice">※ 下にスワイプで閲覧のみ可能</p>
   </div>
 </div>
 
-<!-- 🛠 管理人画面 -->
+<!-- 🛠 管理 -->
 <div id="admin" class="hidden center">
   <div style="width:90%;max-width:420px;">
     <h1>SubWatch 管理人</h1>
 
-    <p id="viewOnly" class="notice" style="display:none;">
+    <p id="viewOnly" class="notice hidden">
       ※閲覧モード（変更不可）
     </p>
 
     <div class="card">
       <h3>Pro 状態</h3>
-      <p id="statusText"></p>
+      <p id="status"></p>
 
-      <button id="enableBtn" class="btn-primary">Pro を有効化</button>
+      <button id="onBtn" class="btn-primary">Pro ON</button>
       <br><br>
-      <button id="disableBtn" class="btn-danger">Pro を無効化</button>
+      <button id="offBtn" class="btn-danger">Pro OFF</button>
     </div>
   </div>
 </div>
@@ -107,72 +100,65 @@ button:disabled {
 <script>
 let unlocked = false;
 let startY = null;
-let swipeTriggered = false;
 
-function updateStatus() {
-  const enabled = localStorage.getItem("proEnabled") !== "false";
-  statusText.textContent =
-    enabled ? "現在：Pro 利用可能" : "現在：Pro 利用不可";
+// 状態表示
+function refresh() {
+  const enabled = localStorage.getItem("pro_enabled") === "1";
+  status.textContent = enabled ? "現在：Pro 利用可能" : "現在：Pro 利用不可";
 }
 
-function lockButtons() {
-  enableBtn.disabled = true;
-  disableBtn.disabled = true;
-}
-
-function unlockButtons() {
-  enableBtn.disabled = false;
-  disableBtn.disabled = false;
-}
-
-// 🔓 パスコード解除
-function checkPass() {
+// パス解除
+function unlock() {
   if (passcode.value === "0823") {
     unlocked = true;
     lock.classList.add("hidden");
     admin.classList.remove("hidden");
-    viewOnly.style.display = "none";
-    unlockButtons();
-    updateStatus();
+    viewOnly.classList.add("hidden");
+    onBtn.disabled = false;
+    offBtn.disabled = false;
+    refresh();
   } else {
     alert("パスコードが違います");
   }
 }
 
-// 👇 iOS対応・確実に動くスワイプ検知
+// スワイプ閲覧
 document.body.addEventListener("touchstart", e => {
   startY = e.touches[0].clientY;
-  swipeTriggered = false;
-}, { passive: true });
+});
 
 document.body.addEventListener("touchmove", e => {
-  if (unlocked || swipeTriggered || startY === null) return;
+  if (unlocked) return;
+  if (!startY) return;
 
-  const currentY = e.touches[0].clientY;
-  if (currentY - startY > 90) {
-    swipeTriggered = true;
-
+  const now = e.touches[0].clientY;
+  if (now - startY > 90) {
     lock.classList.add("hidden");
     admin.classList.remove("hidden");
-    viewOnly.style.display = "block";
-    lockButtons();
-    updateStatus();
+    viewOnly.classList.remove("hidden");
+    onBtn.disabled = true;
+    offBtn.disabled = true;
+    refresh();
   }
-}, { passive: true });
+});
 
-// 🟢 Pro ON
-enableBtn.onclick = () => {
+// ON/OFF
+onBtn.onclick = () => {
   if (!unlocked) return;
-  localStorage.setItem("proEnabled", "true");
-  updateStatus();
+  localStorage.setItem("pro_enabled", "1");
+  refresh();
 };
 
-// 🔴 Pro OFF
-disableBtn.onclick = () => {
+offBtn.onclick = () => {
   if (!unlocked) return;
-  localStorage.setItem("proEnabled", "false");
-  updateStatus();
+  localStorage.setItem("pro_enabled", "0");
+  refresh();
 };
+
+// 初期
+if (!localStorage.getItem("pro_enabled")) {
+  localStorage.setItem("pro_enabled", "1");
+}
 </script>
 
 </body>
