@@ -1,64 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
+
+<title>SubWatch2Pro</title>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>移行</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="SubWatch2Pro">
 
 <style>
 body {
+  margin: 0;
   background: black;
   color: white;
-  font-family: sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
+  font-family: serif;
 }
 
-.box {
-  background: #111;
-  padding: 25px;
-  border-radius: 20px;
-  text-align: center;
-  width: 85%;
-}
-
-button {
-  width: 100%;
-  padding: 15px;
-  margin-top: 10px;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-}
-
-.yes {
-  background: #00c853;
-  color: white;
-}
-
-.no {
-  background: #333;
-  color: white;
+h1 {
+  font-weight: normal;
+  font-size: 20px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="box">
-  <h2>サイトが移行されました</h2>
-  <p>新しいProへ移動しますか？</p>
-
-  <button class="yes" onclick="goPro()">はい</button>
-  <button class="no">いいえ</button>
-</div>
-
-<script>
-function goPro() {
-  window.location.href = "pro2.html"; // ←ここが新Pro
-}
-</script>
+<h1>SubWatch2Pro メイン画面</h1>
 
 </body>
 </html>
