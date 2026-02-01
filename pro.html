@@ -1,42 +1,29 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- キャッシュ防止 -->
-<meta http-equiv="Cache-Control" content="no-cache">
-
 <title>SubWatch Pro</title>
+
+<script>
+setTimeout(() => {
+  window.location.href = "main.html"; // ← 次の画面
+}, 1500);
+</script>
+
+<style>
+body {
+  background: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 32px;
+}
+</style>
+
 </head>
 
 <body>
-
-<script>
-const enabled = localStorage.getItem("pro_enabled");
-
-if (enabled !== "1") {
-  document.body.innerHTML = `
-  <div style="
-    background:#000;
-    color:#fff;
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    text-align:center;
-  ">
-    <div>
-      <h1>SubWatch Pro</h1>
-      <p>申し訳ございませんが<br>現在ご利用になれません。</p>
-      <p style="opacity:0.6">復旧までお待ちください</p>
-    </div>
-  </div>
-  `;
-}
-</script>
-
-<h1 style="text-align:center;margin-top:40vh;">Pro 起動成功</h1>
-
+Pro 起動成功
 </body>
 </html>
