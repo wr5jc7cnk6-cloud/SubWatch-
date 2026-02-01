@@ -1,39 +1,35 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pro 移行</title>
+<title>移行</title>
 
 <style>
 body {
-  margin: 0;
   background: black;
   color: white;
   font-family: sans-serif;
-  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 100vh;
 }
 
-.modal {
+.box {
   background: #111;
-  border-radius: 20px;
   padding: 25px;
-  width: 85%;
-  max-width: 400px;
+  border-radius: 20px;
   text-align: center;
+  width: 85%;
 }
 
 button {
   width: 100%;
-  padding: 14px;
-  margin-top: 12px;
-  border-radius: 12px;
+  padding: 15px;
+  margin-top: 10px;
   border: none;
+  border-radius: 12px;
   font-size: 16px;
-  cursor: pointer;
 }
 
 .yes {
@@ -50,21 +46,17 @@ button {
 
 <body>
 
-<div class="modal">
+<div class="box">
   <h2>サイトが移行されました</h2>
   <p>新しいProへ移動しますか？</p>
 
   <button class="yes" onclick="goPro()">はい</button>
-  <button class="no" onclick="closeModal()">いいえ</button>
+  <button class="no">いいえ</button>
 </div>
 
 <script>
 function goPro() {
-  window.location.href = "pro-main.html";
-}
-
-function closeModal() {
-  document.querySelector(".modal").style.display = "none";
+  window.location.href = "pro2.html"; // ←ここが新Pro
 }
 </script>
 
