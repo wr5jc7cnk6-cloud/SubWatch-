@@ -6,60 +6,81 @@
 
 <style>
 body {
-  margin:0;
-  background:black;
-  overflow:hidden;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
+  margin: 0;
+  background: black;
+  color: #4fc3ff;
+  font-family: serif;
+  overflow: hidden;
 }
 
-.logo {
-  font-size:60px;
-  color:#4cc9ff;
-  opacity:0;
-  transform:scale(0.8);
-  animation:boot 4s ease forwards;
-  position:relative;
-  font-family:serif;
+.center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  letter-spacing: 2px;
 }
 
-.light {
-  position:absolute;
-  top:50%;
-  left:-200%;
-  width:200%;
-  height:2px;
-  background:linear-gradient(90deg, transparent, #4cc9ff, transparent);
-  animation:scan 2s ease 1s forwards;
+.line {
+  position: absolute;
+  top: 50%;
+  height: 2px;
+  width: 0;
+  background: linear-gradient(90deg, #00e5ff, #2979ff);
+  animation: grow 2s ease forwards;
 }
 
-@keyframes boot {
-  0% { opacity:0; transform:scale(0.8); }
-  40% { opacity:1; transform:scale(1); }
-  80% { opacity:1; transform:scale(1.05); }
-  100% { opacity:0; transform:scale(1.2); }
+.left {
+  right: 50%;
+  margin-right: 140px;
 }
 
-@keyframes scan {
-  from { left:-200%; }
-  to { left:200%; }
+.right {
+  left: 50%;
+  margin-left: 140px;
+}
+
+@keyframes grow {
+  to { width: 220px; }
+}
+
+.fade {
+  animation: fadeout 1s ease 2.5s forwards;
+}
+
+@keyframes fadeout {
+  to { opacity: 0; }
+}
+
+.done {
+  position: absolute;
+  bottom: 40%;
+  width: 100%;
+  text-align: center;
+  font-size: 16px;
+  opacity: 0;
+  animation: show 1s ease 2s forwards;
+  color: white;
+}
+
+@keyframes show {
+  to { opacity: 1; }
 }
 </style>
 </head>
 
-<body>
+<body class="fade">
 
-<div class="logo">
-  SubWatch
-  <div class="light"></div>
-</div>
+<div class="line left"></div>
+<div class="center">SubWatch</div>
+<div class="line right"></div>
+<div class="done">起動完了</div>
 
 <script>
 setTimeout(() => {
-  document.body.innerHTML = "<h1 style='color:white;text-align:center'>起動完了</h1>";
-}, 4500);
+  window.location.href = "home.html"; // ← 本体ページ
+}, 3500);
 </script>
 
 </body>
