@@ -1,86 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>SubWatch Boot</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SubWatch</title>
+
+<!-- PWA manifest -->
+<link rel="manifest" href="manifest.json">
 
 <style>
 body {
   margin: 0;
   background: black;
-  color: #4fc3ff;
-  font-family: serif;
-  overflow: hidden;
+  color: #00bfff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: Arial, sans-serif;
 }
 
-.center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+.logo {
   font-size: 48px;
-  letter-spacing: 2px;
+  background: linear-gradient(90deg, #00ffff, #0040ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .line {
   position: absolute;
-  top: 50%;
+  width: 80%;
   height: 2px;
-  width: 0;
-  background: linear-gradient(90deg, #00e5ff, #2979ff);
-  animation: grow 2s ease forwards;
-}
-
-.left {
-  right: 50%;
-  margin-right: 140px;
-}
-
-.right {
-  left: 50%;
-  margin-left: 140px;
-}
-
-@keyframes grow {
-  to { width: 220px; }
-}
-
-.fade {
-  animation: fadeout 1s ease 2.5s forwards;
-}
-
-@keyframes fadeout {
-  to { opacity: 0; }
-}
-
-.done {
-  position: absolute;
-  bottom: 40%;
-  width: 100%;
-  text-align: center;
-  font-size: 16px;
-  opacity: 0;
-  animation: show 1s ease 2s forwards;
-  color: white;
-}
-
-@keyframes show {
-  to { opacity: 1; }
+  background: linear-gradient(90deg, #00ffff, #0040ff);
 }
 </style>
 </head>
 
-<body class="fade">
+<body>
 
-<div class="line left"></div>
-<div class="center">SubWatch</div>
-<div class="line right"></div>
-<div class="done">起動完了</div>
+<div class="line"></div>
+<div class="logo">SubWatch</div>
 
 <script>
 setTimeout(() => {
-  window.location.href = "home.html"; // ← 本体ページ
-}, 3500);
+  window.location.href = "home.html";
+}, 3000);
 </script>
 
 </body>
