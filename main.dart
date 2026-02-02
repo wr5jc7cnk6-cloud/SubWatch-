@@ -1,129 +1,35 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>SubWatch</title>
+</head>
 
-void main() {
-  runApp(const SubWatchApp());
-}
+<body style="margin:0;background:black;display:flex;justify-content:center;align-items:center;height:100vh;">
 
-class SubWatchApp extends StatelessWidget {
-  const SubWatchApp({super.key});
+<svg width="800" height="300" viewBox="0 0 800 300">
+  <defs>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%">
+      <stop offset="0%" stop-color="#00eaff"/>
+      <stop offset="100%" stop-color="#0066ff"/>
+    </linearGradient>
+    <filter id="blur">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+  </defs>
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: const SplashScreen(),
-    );
-  }
-}
+  <rect width="100%" height="100%" fill="black"/>
+  <rect x="0" y="140" width="800" height="6"
+        fill="url(#glow)" filter="url(#blur)"/>
 
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  <text x="50%" y="58%"
+        text-anchor="middle"
+        fill="url(#glow)"
+        font-size="90"
+        font-weight="bold">
+    SubWatch
+  </text>
+</svg>
 
-  @override
-  State<SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-
-  late AnimationController controller;
-  late Animation<double> glowAnim;
-
-  @override
-  void initState() {
-    super.initState();
-
-    controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    );
-
-    glowAnim = Tween<double>(begin: 0, end: 1)
-        .animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
-
-    controller.forward();
-
-    // 3秒後にホームへ
-    Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
-    });
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: AnimatedBuilder(
-        animation: glowAnim,
-        builder: (context, child) {
-          return Center(
-            child: Opacity(
-              opacity: glowAnim.value,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-
-                  // 光ライン
-                  Container(
-                    height: 3,
-                    width: 200 * glowAnim.value,
-                    decoration: BoxDecoration(
-                      color: Colors.blueAccent,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.blueAccent.withOpacity(0.8),
-                          blurRadius: 20,
-                          spreadRadius: 5,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  // ロゴ
-                  const Text(
-                    "SubWatch",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: const Center(
-        child: Text(
-          "Home",
-          style: TextStyle(color: Colors.white, fontSize: 28),
-        ),
-      ),
-    );
-  }
-}
+</body>
+</html>
