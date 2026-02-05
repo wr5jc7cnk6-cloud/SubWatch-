@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loading</title>
+
+<style>
+body {
+  margin: 0;
+  background: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.loader {
+  width: 80%;
+  height: 4px;
+  background: #222;
+  overflow: hidden;
+  position: relative;
+}
+
+.loader::before {
+  content: "";
+  position: absolute;
+  height: 100%;
+  width: 40%;
+  background: white;
+  animation: move 1s linear infinite;
+}
+
+@keyframes move {
+  0% { left: -40%; }
+  100% { left: 100%; }
+}
+</style>
+
+<script>
+setTimeout(() => {
+  window.location.href = "index.html";
+}, 3000);
+</script>
+</head>
+
+<body>
+<div class="loader"></div>
+</body>
+</html>
