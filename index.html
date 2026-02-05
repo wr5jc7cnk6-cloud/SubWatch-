@@ -2,47 +2,52 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>SubWatch</title>
-
-<!-- PWA manifest -->
-<link rel="manifest" href="manifest.json">
+<title>起動中…</title>
 
 <style>
 body {
   margin: 0;
   background: black;
-  color: #00bfff;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  font-family: Arial, sans-serif;
 }
 
-.logo {
-  font-size: 48px;
-  background: linear-gradient(90deg, #00ffff, #0040ff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* 線 */
+.loader {
+  width: 200px;
+  height: 4px;
+  background: #333;
+  overflow: hidden;
+  position: relative;
+  border-radius: 2px;
 }
 
-.line {
+.loader::before {
+  content: "";
   position: absolute;
-  width: 80%;
-  height: 2px;
-  background: linear-gradient(90deg, #00ffff, #0040ff);
+  width: 60px;
+  height: 100%;
+  background: white;
+  animation: slide 1s linear infinite;
+}
+
+/* 左→右→左の動き */
+@keyframes slide {
+  0% { left: -60px; }
+  50% { left: 200px; }
+  100% { left: -60px; }
 }
 </style>
 </head>
 
 <body>
 
-<div class="line"></div>
-<div class="logo">SubWatch</div>
+<div class="loader"></div>
 
 <script>
+// 3秒後にホームへ移動
 setTimeout(() => {
   window.location.href = "home.html";
 }, 3000);
