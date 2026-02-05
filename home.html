@@ -1,161 +1,39 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>SubWatch</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="refresh" content="3;url=index.html">
 
 <style>
 body {
   margin: 0;
-  font-family: Arial;
   background: black;
-  color: white;
-  text-align: center;
-  overflow: hidden;
-}
-
-/* 起動画面 */
-#boot {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  background: black;
+  height: 100vh;
   display: flex;
-  align-items: center;
   justify-content: center;
-  flex-direction: column;
+  align-items: center;
+}
+
+.logo {
   font-size: 42px;
-  color: #4fc3ff;
+  font-weight: bold;
+  color: #00bfff;
+  letter-spacing: 3px;
+  animation: glow 1.5s ease-in-out infinite alternate;
 }
 
-.line {
-  width: 0;
-  height: 2px;
-  background: linear-gradient(90deg,#00e5ff,#2979ff);
-  margin: 10px;
-  animation: grow 2s forwards;
-}
-
-@keyframes grow {
-  to { width: 200px; }
-}
-
-#home {
-  display: none;
-  background: #0b0f1a;
-  min-height: 100vh;
-  padding-bottom: 40px;
-}
-
-header {
-  background: #111827;
-  padding: 20px;
-  font-size: 28px;
-}
-
-.card {
-  margin: 20px auto;
-  padding: 20px;
-  width: 300px;
-  background: #1f2937;
-  border-radius: 12px;
-}
-
-button {
-  padding: 10px 20px;
-  margin: 10px;
-  border: none;
-  border-radius: 8px;
-  background: #2563eb;
-  color: white;
-  font-size: 16px;
-}
-
-input {
-  margin-top: 10px;
-  color: white;
+@keyframes glow {
+  from {
+    text-shadow: 0 0 5px #00bfff, 0 0 10px #00bfff;
+  }
+  to {
+    text-shadow: 0 0 20px #00e5ff, 0 0 40px #00e5ff;
+  }
 }
 </style>
 </head>
 
 <body>
-
-<!-- 起動画面 -->
-<div id="boot">
-  <div>SubWatch</div>
-  <div class="line"></div>
-  <div style="font-size:16px;margin-top:10px;">起動中...</div>
-</div>
-
-<!-- 本体 -->
-<div id="home">
-
-<header>SubWatch 本体</header>
-
-<div class="card">
-<h2>ユーザーデータ</h2>
-<p id="info"></p>
-</div>
-
-<div class="card">
-<h2>データ移行</h2>
-<button onclick="saveData()">データを書き出す</button><br>
-<input type="file" id="loadFile" onchange="loadData()" />
-</div>
-
-</div>
-
-<script>
-// 起動 → 本体へ
-setTimeout(() => {
-  document.getElementById("boot").style.display = "none";
-  document.getElementById("home").style.display = "block";
-  document.body.style.overflow = "auto";
-}, 3000);
-
-// 保存データ
-let appData = {
-  username: "SubWatchUser",
-  level: 5,
-  coins: 1200
-};
-
-function updateUI() {
-  document.getElementById("info").innerHTML =
-    "ユーザー: " + appData.username + "<br>" +
-    "レベル: " + appData.level + "<br>" +
-    "コイン: " + appData.coins;
-}
-
-updateUI();
-
-// 書き出し
-function saveData() {
-  const blob = new Blob(
-    [JSON.stringify(appData)],
-    { type: "application/json" }
-  );
-
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "subwatch_save.json";
-  a.click();
-}
-
-// 読み込み
-function loadData() {
-  const file = document.getElementById("loadFile").files[0];
-  const reader = new FileReader();
-
-  reader.onload = function(e) {
-    appData = JSON.parse(e.target.result);
-    updateUI();
-    alert("データ移行完了！");
-  };
-
-  reader.readAsText(file);
-}
-</script>
-
+  <div class="logo">SubWatch</div>
 </body>
 </html>
